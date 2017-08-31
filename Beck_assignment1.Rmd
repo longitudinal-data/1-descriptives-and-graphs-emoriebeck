@@ -1,0 +1,158 @@
+---
+title: "Untitled"
+author: "Emorie D Beck"
+date: "8/31/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+#Workspace
+##Packages
+
+```{r}
+library(plyr)
+library(tidyverse)
+library(survey)
+library(mi)
+library(mitools)
+library(psych)
+library(googlesheets)
+library(twang)
+library(lme4)
+library(gridExtra)
+library(xtable)
+```
+
+##Working Directory
+```{r}
+data_path <- "~/Dropbox (Brown)/The Clink"
+```
+
+##Data
+```{r}
+# load google sheet containing variable names, recoding, etc #
+dat <- gs_title("NLSY79_ChildYA_MI_PSM")
+# grab the child and mother data of variables chosen to include 
+child <- dat %>% gs_read(ws = "Child") %>% filter(Include == "Yes")
+# load in the Rdata files of the raw, uncleaned NLSY data sets
+load(paste(data_path, "/data/nlsy79cya/nlsy79cya.RData", sep = "/"))
+# cut additional variables not included in the present analyses
+new_data <- tbl_df(new_data) %>% select(one_of(child$RNUM))
+```
+
+##Move your data into a long format and a wide format. Did you have any specific challenges that you encountered? If so, discuss them.  
+
+First, we'll get the reference numbers of the dataset that make up the wide format columns. Then, we'll get the new names that I want to name the columns that make actual sense.  
+```{r}
+child_long_cols <- (child %>% filter(year != "XRND" & var.type == "predictor"))$RNUM
+child_new_cols <-  (child %>% filter(year != "XRND" & var.type == "predictor"))$comb_varname
+```
+
+We have people with different dates of birth who were assessed at different times (every other year). So we choose to lump across two year age periods since no one was assessed twice in 2 years.  
+```{r}
+# create vector of original continuous age variables and new categorical ones
+age_orig <- seq(8, 25, 1)
+age_cat <- rep(seq(8,24,2), each = 2)
+```
+
+To rename columns, I'll first move it to long format because that will make it much easier to deal with weirdnesses in time later. I could also use `setNames()` to simply change the column names.
+```{r}
+# take wide format data and shift time=varying variables to long format
+# then rename the old reference numbers with new names
+pred_long <- new_data %>%
+  select(C0000100, C0000200, C0005700, C0005400, one_of(child_long_cols)) %>%
+  gather(key = item, value = value, one_of(child_long_cols)) %>%
+  setNames(c("PROC_CID", "PROC_MID", "Dem_DOBYear", "DemCSex", "item", "value")) %>% # rename columns
+  mutate(item = mapvalues(item, child_long_cols, child_new_cols)) 
+
+head(pred_long)
+```
+
+Now I'm going to change it to wide format because I promise I can.  
+```{r}
+# change to wide format beacuse I'm supposed to
+pred_wide <- pred_long %>%
+  spread(key = item, value = value)
+
+head(pred_wide)
+```
+
+
+##Create a wave variable and date variable (if applicable). Take the date variable and convert it to a different date format such as time in study or age (if appropriate). What scale is most suitable for your analyses? (weeks/months/years?)
+Below, I first split the long variable names into the variable names and the year. Then I'll use participants' dates of birth and the year of assessment to calculate their age at assessment. Everyone was assessed at different times (every even numbered year). So we choose to lump across two year age periods since no one was assessed twice in 2 years. In this case, age is the most appropriate scale because we are interested in developmental processes and some participants were infants while the others were reaching young adulthood. We will later use their dates of birth as a covariate to control for possible cohort effects.  
+```{r}
+# create vector of original continuous age variables and new categorical ones
+age_orig <- seq(8, 25, 1)
+age_cat <- rep(seq(8,24,2), each = 2)
+
+pred_long <- pred_long %>%
+  separate(item, c("item", "year"), sep = "[.]") %>%
+  mutate(year = as.numeric(year), 
+         age = ifelse(!is.na(value) & year >= Dem_DOBYear, year - Dem_DOBYear, NA)) %>%
+  filter(!is.na(age) & !is.na(value) & age <= 25) %>%
+  mutate(age = mapvalues(age, age_orig, age_cat))
+
+head(pred_long)
+```
+
+
+##What is your sample size for each wave of assessment?
+```{r, results = 'asis'}
+pred_size <- pred_long %>% 
+  select(PROC_CID, age, year) %>%
+  group_by(PROC_CID, year) %>%
+  summarize(age = unique(age)[1]) %>%
+  gather(key = time, value = time_val, age, year) %>%
+  group_by(time) %>%
+  nest() %>%
+  mutate(tab = map2(data, time, function(x,y) {
+    stargazer(x %>% group_by(time_val) %>% summarize(n = n()), 
+                 title = sprintf("Sample Size by %s", y),
+                 summary = F)}))
+
+
+```
+
+
+##Graph your data using the different time metrics, fitting individual curves for each person.
+Before we do this, we first need to create some composites for our 4 DV's: Impulsivity, Sensation Seeking, CESD Depression, and Self-Esteem. To do this, we will take advantage of the item naming scheme, which is Category_Item.Year. We've already taken care of the year by converting it to age, so now we'll (1) average across *items* and age (some participants filled out Child and YA surveys in the same year) then we'll (2) average across *categories* and age (to create composites).  
+```{r}
+pred_long <- pred_long %>%
+  #unite(item, item, age, sep = ".") %>%
+  group_by(PROC_CID, item, age) %>%
+  summarize(value = mean(value, na.rm = T)) %>%
+  ungroup() %>%
+  separate(item, c("item", "type")) %>%
+  group_by(PROC_CID, item, age) %>%
+  summarize(value = mean(value, na.rm = T)) %>%
+  ungroup() #%>%
+  #mutate(age0 = age-14)
+
+head(pred_long)
+```
+
+
+##Create an overall average trend of your data (split up into groups if appropriate). Attempt to color your individual data points and/or shade different lines (highlight some particiapnts, highlight the average trend line but not the individual level lines).
+
+Here, I'm going to lazily add in grouping data to save time and effort (and you having to deal with more code).
+
+```{r}
+load(paste(data_path, "data/groups.RData"))
+pred_long %>%
+  left_join(group_wide) %>%
+  ggplot(aes(x = age, y = value)) + 
+  geom_point() +
+  geom_smooth(method = "lm", aes(color = groups)) +
+  facet_wrap(~item, ncol = 2, scale = "frree") + 
+  theme_classic() +
+  theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+        axis.title = element_text(face = "bold", size = rel(1.2)),
+        strip.text = element_text(face = "bold", size = rel(1.2)))
+```
+
+
+##Look at the correlations of your DV across time
