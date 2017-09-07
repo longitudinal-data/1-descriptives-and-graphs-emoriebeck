@@ -2,7 +2,12 @@
 title: "Assignment 1"
 author: "Emorie D Beck"
 date: "8/31/2017"
-output: html_document
+output: 
+  github_document:
+      toc: true
+  html_document:
+      toc: true
+      toc_float: true
 ---
 
 ```{r setup, include=FALSE}
@@ -49,7 +54,8 @@ load(url(paste(data_path, "nlsy79cya.RData", sep = "/")))
 new_data <- tbl_df(new_data) %>% select(one_of(child$RNUM))
 ```
 
-##Move your data into a long format and a wide format. Did you have any specific challenges that you encountered? If so, discuss them.  
+##Question 1: Wide to Long to Wide
+<strong>Move your data into a long format and a wide format. Did you have any specific challenges that you encountered? If so, discuss them.  </strong>
 
 First, we'll get the reference numbers of the dataset that make up the wide format columns. Then, we'll get the new names that I want to name the columns that make actual sense.  
 ```{r}
@@ -94,7 +100,9 @@ head(pred_wide)
 ```
 
 
-##Create a wave variable and date variable (if applicable). Take the date variable and convert it to a different date format such as time in study or age (if appropriate). What scale is most suitable for your analyses? (weeks/months/years?)
+##Question 2: Create Some Dates
+
+<strong>Create a wave variable and date variable (if applicable). Take the date variable and convert it to a different date format such as time in study or age (if appropriate). What scale is most suitable for your analyses? (weeks/months/years?) </strong>  
 Below, I first split the long variable names into the variable names and the year. Then I'll use participants' dates of birth and the year of assessment to calculate their age at assessment. Everyone was assessed at different times (every even numbered year). So we choose to lump across two year age periods since no one was assessed twice in 2 years. In this case, age is the most appropriate scale because we are interested in developmental processes and some participants were infants while the others were reaching young adulthood. We will later use their dates of birth as a covariate to control for possible cohort effects. I'm also going to reverse code items here because we will need that for later.  
 ```{r}
 # create vector of original continuous age variables and new categorical ones
@@ -118,7 +126,8 @@ head(pred_long)
 ```
 
 
-##What is your sample size for each wave of assessment?
+##Question 3: Sample Size
+<strong>What is your sample size for each wave of assessment?</strong>
 ```{r, results = 'asis'}
 tab_fun <- function(df, Time){
   summ <- df %>% group_by(time_val) %>% summarize(N = n()) %>% 
@@ -139,8 +148,10 @@ do.call("print", pred_size$tab)
 ```
 
 
-##Graph your data using the different time metrics, fitting individual curves for each person.
-Before we do this, we first need to create some composites for our 4 DV's: Impulsivity, Sensation Seeking, CESD Depression, and Self-Esteem. To do this, we will take advantage of the item naming scheme, which is Category_Item.Year. We've already taken care of the year by converting it to age, so now we'll (1) average across *items* and age (some participants filled out Child and YA surveys in the same year) then we'll (2) average across *categories* and age (to create composites).  
+##Question 4: Intraindividual Change
+<strong>Graph your data using the different time metrics, fitting individual curves for each person.</strong>  
+
+Before we do this, we first need to create some composites for our 4 DV's: Impulsivity, Sensation Seeking, CESD Depression, and Self-Esteem. To do this, we will take advantage of the item naming scheme, which is Category_Item.Year. We've already taken care of the year by converting it to age, so now we'll (1) average across *items* and age (some participants filled out Child and YA surveys in the same year) then we'll (2) average across *categories* and age (to create composites).   
 ```{r}
 pred_long <- pred_long %>%
   #unite(item, item, age, sep = ".") %>%
@@ -157,9 +168,10 @@ head(pred_long)
 ```
 
 
-##Create an overall average trend of your data (split up into groups if appropriate). Attempt to color your individual data points and/or shade different lines (highlight some particiapnts, highlight the average trend line but not the individual level lines).
+##Question 6: Mean Level Change 
+<strong>Create an overall average trend of your data (split up into groups if appropriate). Attempt to color your individual data points and/or shade different lines (highlight some particiapnts, highlight the average trend line but not the individual level lines).</strong>
 
-Here, I'm going to lazily add in grouping data to save time and effort (and you having to deal with more code).
+Here, I'm going to lazily add in grouping data to save time and effort (and you having to deal with more code).  
 
 ```{r}
 load(url(paste(data_path, "groups.RData", sep = "/")))
@@ -177,7 +189,8 @@ pred_long %>%
 ```
 
 
-##Look at the correlations of your DV across time
+##Question 7: Correlations Over Time
+<strong>Look at the correlations of your DV across time</strong>
 ```{r, results = 'asis'}
 r_fun <- function(df, Item){
   stargazer::stargazer(
