@@ -347,7 +347,7 @@ pred_long %>%
 
     ## Joining, by = "PROC_CID"
 
-![](Beck_assignment1_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
+![](README_files/figure-markdown_github-ascii_identifiers/unnamed-chunk-11-1.png)
 
 Question 7: Correlations Over Time
 ----------------------------------
