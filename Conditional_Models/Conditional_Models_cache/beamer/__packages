@@ -5,14 +5,15 @@ broom
 Matrix
 lme4
 MuMIn
-estimability
-lsmeans
 MASS
 arm
 dplyr
 merTools
 reghelper
 stargazer
+estimability
+lsmeans
+plyr
 tidyverse
 ggplot2
 tibble
@@ -20,4 +21,4 @@ tidyr
 readr
 purrr
 bindrcpp
-plyr
+multcompView

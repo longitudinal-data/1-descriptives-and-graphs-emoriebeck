@@ -10,7 +10,7 @@ editor_options:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = T, eval = T, cache = T)
+knitr::opts_chunk$set(echo = T, eval = T, cache = T, warning = F, message = F)
 ```
 
 ##Packages
@@ -20,10 +20,11 @@ library(sjPlot)
 library(broom)
 library(lme4)
 library(MuMIn)
-library(lsmeans)
 library(merTools)
 library(reghelper)
 library(stargazer)
+library(lsmeans)
+library(multcompView)
 library(plyr)
 library(tidyverse)
 ```
@@ -52,9 +53,9 @@ age0        | Age of participant (centered) | Yes
 SensSeek    | Sensation-Seeking Composite   | Yes
 CESD        | CESD Depression Composite     | Yes
 
-```{r, eval = T}
-data_path <- "~/Dropbox (Brown)/Fall 2017/Longitudinal Data Analysis/Notes/Conditional Models"
-load(paste(data_path, "sample.RData", sep = "/"))
+```{r, eval = T, tidy = T}
+data_path <- "https://github.com/longitudinal-data/1-descriptives-and-graphs-emoriebeck/raw/master/Conditional_Models"
+load(url(paste(data_path, "sample.RData", sep = "/")))
 
 head(sample_dat)
 ```
@@ -495,6 +496,68 @@ fixed.frame %>%
 
 
 \normalsize  
+
+##Side Note: Comparisons with `lsmeans`
+\footnotesize
+```{r, eval = F}
+# create a reference grid
+ref.grid2g <- ref.grid(mod2g)
+# create the lsmeans object
+lsgroups   <- lsmeans(ref.grid2g, "groups")
+# compact letter display
+cld(lsgroups, alpha = .10)
+# plot
+plot(lsgroups)
+# contrasts of the ref.grid object
+contrast(ref.grid2g, method = "eff")
+# comparisons
+groups.sum <- summary(lsgroups, infer = c(TRUE,TRUE), 
+                      level = .90, adjust = "bon", by = "groups")
+```
+
+***
+
+```{r}
+# create a reference grid
+(ref.grid2g <- ref.grid(mod2g))
+```
+
+***
+
+```{r}
+# create the lsmeans object
+(lsgroups   <- lsmeans(ref.grid2g, "groups"))
+```
+
+***
+
+```{r}
+# compact letter display
+cld(lsgroups, alpha = .10)
+```
+
+***
+
+```{r}
+# plot
+plot(lsgroups)
+```
+
+***
+
+```{r}
+# contrasts of the ref.grid object
+contrast(ref.grid2g, method = "eff")
+```
+
+***
+
+```{r}
+# comparisons
+(groups.sum <- summary(lsgroups, infer = c(TRUE,TRUE), 
+          level = .90, adjust = "bon", by = "groups"))
+```
+
 
 ## Time Invariant Predictors: Example - 3 level group  
 
