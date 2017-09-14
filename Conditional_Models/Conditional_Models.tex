@@ -7660,6 +7660,9 @@ means you need to square them to get the variance!!)\\
 \begin{frame}[fragile]
 
 \small
+\textbf{Conditional $R^2$:} how well the model fits overall
+
+\textbf{Marginal $R^2$:} how well the model fits the fixed effects
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -7689,14 +7692,14 @@ There are lots of helpful packages for this, including
 \end{Highlighting}
 \end{Shaded}
 
+\normalsize
+
 The problem is that \texttt{stargazer()} doesn't include all the terms
 we want, and \texttt{sjt.lmer()} only renders html. Embedded in the
 \texttt{.Rmd} version of these slides is some code that should help you
 to extract the terms you need and create a table using \texttt{dplyr}
 and \texttt{tidyr} that you can render in \LaTeX using
 \texttt{stargazer}.
-
-\normalsize
 
 \end{frame}
 

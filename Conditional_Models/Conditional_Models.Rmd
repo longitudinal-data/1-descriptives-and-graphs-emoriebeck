@@ -288,6 +288,9 @@ reghelper::ICC(mod2g)
 
 ***
 \small
+\textbf{Conditional $R^2$:} how well the model fits overall  
+
+\textbf{Marginal $R^2$:} how well the model fits the fixed effects  
 ```{r}
 MuMIn::r.squaredGLMM(mod2g)
 ```
@@ -302,9 +305,9 @@ stargazer::stargazer(mod2g)
 sjPlot::sjt.lmer(mod2g)
 ```
 
-The problem is that `stargazer()` doesn't include all the terms we want, and `sjt.lmer()` only renders html. Embedded in the `.Rmd` version of these slides is some code that should help you to extract the terms you need and create a table using `dplyr` and `tidyr` that you can render in \LaTeX using `stargazer`.
-
 \normalsize
+
+The problem is that `stargazer()` doesn't include all the terms we want, and `sjt.lmer()` only renders html. Embedded in the `.Rmd` version of these slides is some code that should help you to extract the terms you need and create a table using `dplyr` and `tidyr` that you can render in \LaTeX using `stargazer`.
 
 ## Side Note: Creating MLM Tables
 But let's understand where those variables came from. To do so, we'll use the `broom` package in R to grab the terms we need.  
