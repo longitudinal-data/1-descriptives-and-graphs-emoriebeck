@@ -35,7 +35,7 @@ library(tidyverse)
 From last week:
 \begin{itemize}
   \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \varepsilon{ij}$
-  \item \textbf{Level 2:} $\beta_{0j} = \gamma_{00} + \mu_{0j}$
+  \item \textbf{Level 2:} $\beta_{0j} = \gamma_{00} + U_{0j}$
 \end{itemize}
 
 ## Sample Data
