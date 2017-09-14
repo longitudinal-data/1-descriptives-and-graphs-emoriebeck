@@ -288,9 +288,11 @@ reghelper::ICC(mod2g)
 
 ***
 \small
-\textbf{Conditional $R^2$:} how well the model fits overall  
+\textbf{Conditional $R^2$:} How much variance fixed + random effects explain  
+\textbf{Marginal $R^2$:} how much variance the fixed effects explain  
 
-\textbf{Marginal $R^2$:} how well the model fits the fixed effects  
+[explained here](https://jonlefcheck.net/2013/03/13/r2-for-linear-mixed-effects-models/)  
+
 ```{r}
 MuMIn::r.squaredGLMM(mod2g)
 ```
@@ -299,7 +301,7 @@ MuMIn::r.squaredGLMM(mod2g)
 
 ## Side Note: Creating MLM Tables
 There are lots of helpful packages for this, including `stargazer` and `sjPlot`, which are demonstrated below.  
-\tiny
+\small
 ```{r, eval = F}
 stargazer::stargazer(mod2g)
 sjPlot::sjt.lmer(mod2g)
