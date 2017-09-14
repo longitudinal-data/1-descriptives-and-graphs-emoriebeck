@@ -103,7 +103,7 @@ CESD & CESD Depression Composite & Yes\tabularnewline
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{mod0 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{(}\DecValTok{1}\OperatorTok{|}\NormalTok{age0), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
+\NormalTok{mod0 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{(}\DecValTok{1}\OperatorTok{|}\NormalTok{PROC_CID), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -180,6 +180,11 @@ results in interaction terms:
 \(Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j} + (\gamma_{10} + \gamma_{11}*X_{2j} + U_{1j})*X_{1j} + \varepsilon{ij}\)
 \(Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + \gamma_{10}*X_{1j} + \textcolor{red}{\gamma_{11}*X_{2j}*X_{1j}} + U_{0j} + U_{1j}*X_{1j} + \varepsilon{ij}\)
 
+We can also fit this with intercepts depending on weight, but without
+the change (slope) dependent on weight:\\
+\(Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j} + (\gamma_{10} + U_{1j})*X_{1j} + \varepsilon{ij}\)
+\(Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + \gamma_{10}*X_{1j} + U_{0j} + U_{1j}*X_{1j} + \varepsilon{ij}\)
+
 \end{frame}
 
 \begin{frame}[fragile]{Time Invariant Predictors: Continuous Example -
@@ -218,13 +223,18 @@ Weight for Age Percentile}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\CommentTok{# time invariant covariate with random intecept but not slope}
-\NormalTok{mod1a <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }\NormalTok{(}\DecValTok{1}\OperatorTok{|}\NormalTok{PROC_CID), }
+\CommentTok{# time invariant covariate with random intecept (with weight as covariate) }
+\CommentTok{# and slope (without weight as a covariate)}
+\NormalTok{mod1a <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }
               \DataTypeTok{data =}\NormalTok{ sample_dat)}
+
+\KeywordTok{summary}\NormalTok{(mod1a)}
 
 \CommentTok{# time invariant predictor with random slope and intercept}
 \NormalTok{mod1b <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }
 \StringTok{                }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
+
+\KeywordTok{summary}\NormalTok{(mod1b)}
 \end{Highlighting}
 \end{Shaded}
 

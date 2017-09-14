@@ -89,7 +89,7 @@ sample_dat %>%
 ## In R
 \small
 ```{r}
-mod0 <- lmer(SensSeek ~ age0 + (1|age0), data = sample_dat)
+mod0 <- lmer(SensSeek ~ age0 + (1|PROC_CID), data = sample_dat)
 ```
 
 \centering
@@ -128,6 +128,10 @@ But we need to break this down to see that adding additional predictors results 
 $Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j} + (\gamma_{10} + \gamma_{11}*X_{2j} + U_{1j})*X_{1j} + \varepsilon{ij}$
 $Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + \gamma_{10}*X_{1j} + \textcolor{red}{\gamma_{11}*X_{2j}*X_{1j}} + U_{0j} + U_{1j}*X_{1j} + \varepsilon{ij}$
 
+We can also fit this with intercepts depending on weight, but without the change (slope) dependent on weight:  
+$Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j} + (\gamma_{10} + U_{1j})*X_{1j} + \varepsilon{ij}$
+$Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + \gamma_{10}*X_{1j} + U_{0j} + U_{1j}*X_{1j} + \varepsilon{ij}$
+
 ## Time Invariant Predictors: Continuous Example - Weight for Age Percentile  
 ```{r, eval = F}
 describe(sample_dat$DemPweight)
@@ -158,13 +162,18 @@ sample_dat %>%
 
 \tiny
 ```{r,results='hide'}
-# time invariant covariate with random intecept but not slope
-mod1a <- lmer(SensSeek ~ age0 + DemPweight + age0*DemPweight + (1|PROC_CID), 
+# time invariant covariate with random intecept (with weight as covariate) 
+# and slope (without weight as a covariate)
+mod1a <- lmer(SensSeek ~ age0 + DemPweight + (age0|PROC_CID), 
               data = sample_dat)
+
+summary(mod1a)
 
 # time invariant predictor with random slope and intercept
 mod1b <- lmer(SensSeek ~ age0 + DemPweight + age0*DemPweight + 
                 (age0|PROC_CID), data = sample_dat)
+
+summary(mod1b)
 ```
 
 \normalsize
