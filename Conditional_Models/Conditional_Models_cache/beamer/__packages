@@ -13,6 +13,7 @@ reghelper
 stargazer
 estimability
 lsmeans
+multcompView
 plyr
 tidyverse
 ggplot2
@@ -21,4 +22,3 @@ tidyr
 readr
 purrr
 bindrcpp
-multcompView

@@ -603,7 +603,7 @@ Variable  | D1  | D2
 --------- | --- | ---
 Jail      | 0   | 0
 None      | 1   | 0
-CommServ  } 0   | 1  
+CommServ  | 0   | 1  
 
 ## Time Invariant Predictors: Example - 3 level group
 \small
@@ -764,6 +764,8 @@ modTV2 <- lmer(SensSeek ~ age0 + depressed + (age0|PROC_CID),
                data = sample_dat)
 summary(modTV2)
 ```
+
+***
 
 \tiny
 ```{r, echo = F}
