@@ -1,0 +1,51 @@
+---
+title: "Untitled"
+author: "Emorie Beck"
+date: "9/14/2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Workspace
+##Packages
+
+```{r, message = F, results = 'hide', warning = F}
+library(plyr)
+library(tidyverse)
+library(psych)
+library(googlesheets)
+library(lme4)
+library(gridExtra)
+library(stargazer)
+library(stringr)
+```
+
+##Working Directory
+```{r}
+data_path <- "https://github.com/longitudinal-data/1-descriptives-and-graphs-emoriebeck/assigment2/raw/master"
+```
+
+1.Run linear models on all of your subjects (a basic regression). What is the average intercept, the average slope?
+
+```{r}
+load(url(paste(data_path, "data.RData", sep = "/")))
+```
+
+Now run a mlm/lmer model with only a random intercept. What is the ICC? What does residual variance look like compared to linear model? Create a graph to show this effect.
+
+Introduce a fixed slope term. What is the difference in terms of the fixed effects estimates between this estimate and the previous? Of the residual standard error? Create a graph to show both fixed effects estimates and the CIs around them.
+
+Run an additional model with a random slope. How does this change compare to the previous model? Should you keep the random slope or not?
+
+Interpret the correlation between the slope and the intercept.
+
+Create a density plot of the random effects from your final model.
+
+Create a catepilar plot of the random effects. Is there any person that seems odd in terms of a large standard errors around intercept and slope estimates?
+
+Create a plot of the trajectory, along with a spaghetti plot of each person’s individual slope. Set the alpha level (transparency) on the individual slopes to make them easier to see.
+
+Create a plot of the trajectory, along with a spagehtti plot of each person’s individual slope. Set the alpha level (transperancy) on the individual slopes to make them easier to see.

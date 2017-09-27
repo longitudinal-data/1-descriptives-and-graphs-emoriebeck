@@ -5,6 +5,9 @@ date: "9/7/2017"
 output: 
   beamer_presentation:
     keep_tex: yes
+    includes:
+            in_header:
+                header.tex
 editor_options: 
   chunk_output_type: console
 ---
@@ -386,9 +389,9 @@ rand <- rand %>%
 
 mod_terms <- tribble(
   ~term, ~estimate, ~type,
-  "ICC", ICC, "mod_terms",
-  "$R^2_m$", R2[1], "mod_terms",
-  "$R^2_c$", R2[2], "mod_terms"
+  "ICC", ICC, "Model Terms",
+  "$R^2_m$", R2[1], "Model Terms",
+  "$R^2_c$", R2[2], "Model Terms"
 )
 
 tab <- fixed %>%
@@ -402,7 +405,9 @@ tab <- fixed %>%
 # you can use this with papaja and the apa_table function pretty easily
 # the trick is that if you are not using the papaja template, the proper
 # LaTeX packages may not be loaded. You can get around this by attaching
-# a .tex file calling the packages under "header: header.tex" in your YAML header
+# a .tex file calling the packages under "in_header: header.tex" in your YAML
+# header the YAML header of this .Rmd file contains the necessary syntax and 
+# the header.tex file with the proper packages
 ```
 
 ## Side Note: Creating MLM Tables  
@@ -412,7 +417,36 @@ options(knitr.kable.NA = '')
 knitr::kable(tab, caption = "Ugly MLM Table Example")
 ```
 
+
+
+## Side Note: Creating MLM Tables  
+\tiny
+```{r, results = 'asis'}
+library(kableExtra)
+options(knitr.kable.NA = '')
+knitr::kable(tab %>% select(-type) %>%
+    mutate(term = gsub("[()]", "", term)),
+             caption = "Ugly MLM Table Example", format = "latex", 
+             longtable = T, booktabs = T, escape = F) %>%
+  group_rows("Fixed", 1,4) %>% 
+  group_rows("Random", 5,9) %>%
+  group_rows("Model", 9,11) %>%
+  #kable_styling(latex_options = c("striped","repeat_header"),full_width = F)
+  add_header_above(c(" ", "Model 1" = 2))
+  
+```
+
+
+***
+
+## Side Note: Creating MLM Tables  
+\footnotesize
+```{r, results = 'asis'}
+papaja::apa_table(tab %>% select(-type),caption = "MLM Table Example", 
+    na_string = "", stub_indents = list(Fixed = c(1:4), Random = c(5:11)))
+```
 \normalsize
+
 
 ##Side Note: Plotting Simple Effects
 \footnotesize
@@ -689,11 +723,12 @@ $$Y_{ij} =  \gamma_{00} + \gamma_{01} + U_{0j} + (\gamma_{10} + U_{1j})*age0 + \
 \small
 ```{r, results = 'hide'}
 modTV1 <- lmer(SensSeek ~ age0 + CESD + (age0|PROC_CID), data = sample_dat)
-summary(modTV1)
 ```
 
+***
+
 \tiny
-```{r, echo = F}
+```{r, echo = T}
 summary(modTV1)
 ```
 

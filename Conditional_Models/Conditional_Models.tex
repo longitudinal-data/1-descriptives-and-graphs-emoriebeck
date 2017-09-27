@@ -1,3 +1,146 @@
+\documentclass[ignorenonframetext,]{beamer}
+\setbeamertemplate{caption}[numbered]
+\setbeamertemplate{caption label separator}{: }
+\setbeamercolor{caption name}{fg=normal text.fg}
+\beamertemplatenavigationsymbolsempty
+\usepackage{lmodern}
+\usepackage{amssymb,amsmath}
+\usepackage{ifxetex,ifluatex}
+\usepackage{fixltx2e} % provides \textsubscript
+\ifnum 0\ifxetex 1\fi\ifluatex 1\fi=0 % if pdftex
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\else % if luatex or xelatex
+\ifxetex
+\usepackage{mathspec}
+\else
+\usepackage{fontspec}
+\fi
+\defaultfontfeatures{Ligatures=TeX,Scale=MatchLowercase}
+\fi
+% use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+% use microtype if available
+\IfFileExists{microtype.sty}{%
+\usepackage{microtype}
+\UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\newif\ifbibliography
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\usepackage{framed}
+\definecolor{shadecolor}{RGB}{248,248,248}
+\newenvironment{Shaded}{\begin{snugshade}}{\end{snugshade}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{{#1}}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.00,0.00,0.81}{{#1}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.31,0.60,0.02}{{#1}}}
+\newcommand{\ImportTok}[1]{{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{{#1}}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.00,0.00,0.00}{{#1}}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.13,0.29,0.53}{\textbf{{#1}}}}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.81,0.36,0.00}{\textbf{{#1}}}}
+\newcommand{\BuiltInTok}[1]{{#1}}
+\newcommand{\ExtensionTok}[1]{{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textit{{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.77,0.63,0.00}{{#1}}}
+\newcommand{\RegionMarkerTok}[1]{{#1}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.56,0.35,0.01}{\textbf{\textit{{#1}}}}}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{0.94,0.16,0.16}{{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{0.64,0.00,0.00}{\textbf{{#1}}}}
+\newcommand{\NormalTok}[1]{{#1}}
+\usepackage{longtable,booktabs}
+\usepackage{caption}
+% These lines are needed to make table captions work with longtable:
+\makeatletter
+\def\fnum@table{\tablename~\thetable}
+\makeatother
+\usepackage{graphicx,grffile}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight0.8\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+
+% Prevent slide breaks in the middle of a paragraph:
+\widowpenalties 1 10000
+\raggedbottom
+
+\AtBeginPart{
+\let\insertpartnumber\relax
+\let\partname\relax
+\frame{\partpage}
+}
+\AtBeginSection{
+\ifbibliography
+\else
+\let\insertsectionnumber\relax
+\let\sectionname\relax
+\frame{\sectionpage}
+\fi
+}
+\AtBeginSubsection{
+\let\insertsubsectionnumber\relax
+\let\subsectionname\relax
+\frame{\subsectionpage}
+}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+\setlength{\emergencystretch}{3em}  % prevent overfull lines
+\providecommand{\tightlist}{%
+\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{0}
+% \usepackage[table]{xcolor}
+\usepackage{array}
+\usepackage{lscape}
+\newcommand{\blandscape}{\begin{landscape}}
+\newcommand{\elandscape}{\end{landscape}}
+\usepackage{dcolumn}
+\usepackage{bbm}
+\usepackage{rotating, graphicx}
+\usepackage{tabulary}
+\usepackage{multirow}
+\usepackage{algorithm}
+\usepackage{booktabs}
+\usepackage{colortbl}
+\usepackage{longtable}
+\usepackage{expex}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{wrapfig}
+\usepackage{float}
+\usepackage{pdflscape}
+\usepackage{tabu}
+\usepackage{threeparttable}
+
+\title{Conditional Models}
+\author{Emorie D Beck}
+\date{9/7/2017}
+
+\begin{document}
+\frame{\titlepage}
+
 \begin{frame}[fragile]{Packages}
 
 \begin{Shaded}
@@ -103,7 +246,7 @@ CESD & CESD Depression Composite & Yes\tabularnewline
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{mod0 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{(}\DecValTok{1}\OperatorTok{|}\NormalTok{PROC_CID), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
+\NormalTok{mod0 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{(}\DecValTok{1}\NormalTok{|PROC_CID), }\DataTypeTok{data =} \NormalTok{sample_dat)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -192,7 +335,7 @@ Weight for Age Percentile}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{describe}\NormalTok{(sample_dat}\OperatorTok{$}\NormalTok{DemPweight)}
+\KeywordTok{describe}\NormalTok{(sample_dat$DemPweight)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -225,14 +368,14 @@ Weight for Age Percentile}
 \begin{Highlighting}[]
 \CommentTok{# time invariant covariate with random intecept (with weight as covariate) }
 \CommentTok{# and slope (without weight as a covariate)}
-\NormalTok{mod1a <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }
-              \DataTypeTok{data =}\NormalTok{ sample_dat)}
+\NormalTok{mod1a <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{DemPweight +}\StringTok{ }\NormalTok{(age0|PROC_CID), }
+              \DataTypeTok{data =} \NormalTok{sample_dat)}
 
 \KeywordTok{summary}\NormalTok{(mod1a)}
 
 \CommentTok{# time invariant predictor with random slope and intercept}
-\NormalTok{mod1b <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{DemPweight }\OperatorTok{+}\StringTok{ }
-\StringTok{                }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
+\NormalTok{mod1b <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{DemPweight +}\StringTok{ }\NormalTok{age0*DemPweight +}\StringTok{ }
+\StringTok{                }\NormalTok{(age0|PROC_CID), }\DataTypeTok{data =} \NormalTok{sample_dat)}
 
 \KeywordTok{summary}\NormalTok{(mod1b)}
 \end{Highlighting}
@@ -294,8 +437,8 @@ group}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{mod2g <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{groups }\OperatorTok{+}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{groups }\OperatorTok{+}\StringTok{ }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }
-              \DataTypeTok{data =}\NormalTok{ sample_dat }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(groups }\OperatorTok{!=}\StringTok{ "CommServ"}\NormalTok{))}
+\NormalTok{mod2g <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{groups +}\StringTok{ }\NormalTok{age0*groups +}\StringTok{ }\NormalTok{(age0|PROC_CID), }
+              \DataTypeTok{data =} \NormalTok{sample_dat %>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(groups !=}\StringTok{ "CommServ"}\NormalTok{))}
 \KeywordTok{summary}\NormalTok{(mod2g)}
 \end{Highlighting}
 \end{Shaded}
@@ -348,8 +491,8 @@ group}
 \KeywordTok{ranef}\NormalTok{(mod2g)}
 \KeywordTok{coef}\NormalTok{(mod2g)}
 \KeywordTok{confint.merMod}\NormalTok{(mod2g, }\DataTypeTok{method =} \StringTok{"boot"}\NormalTok{)}
-\NormalTok{reghelper}\OperatorTok{::}\KeywordTok{ICC}\NormalTok{(mod2g)}
-\NormalTok{MuMIn}\OperatorTok{::}\KeywordTok{r.squaredGLMM}\NormalTok{(mod2g)}
+\NormalTok{reghelper::}\KeywordTok{ICC}\NormalTok{(mod2g)}
+\NormalTok{MuMIn::}\KeywordTok{r.squaredGLMM}\NormalTok{(mod2g)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1130,14 +1273,14 @@ group}
 
 \begin{verbatim}
 ##                        2.5 %       97.5 %
-## .sig01           0.387699995  0.444768828
-## .sig02          -0.550990855 -0.053413081
-## .sig03           0.003937566  0.038701622
-## .sigma           0.409003071  0.449621923
-## (Intercept)      2.650626814  2.757994545
-## age0            -0.013594481  0.007261476
-## groupsJail      -0.019673349  0.208040335
-## age0:groupsJail -0.026564473  0.002326852
+## .sig01           0.327385686 0.4383052800
+## .sig02          -0.449329241 1.0000000000
+## .sig03           0.003594104 0.0395529858
+## .sigma           0.429704844 0.4545352374
+## (Intercept)      2.687572155 2.7526852249
+## age0            -0.008431261 0.0003451138
+## groupsJail       0.045594498 0.1406432924
+## age0:groupsJail -0.009248090 0.0023639599
 \end{verbatim}
 
 All units of the random effects are in standard deviation units (which
@@ -1158,7 +1301,7 @@ means you need to square them to get the variance!!)\\
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{reghelper}\OperatorTok{::}\KeywordTok{ICC}\NormalTok{(mod2g)}
+\NormalTok{reghelper::}\KeywordTok{ICC}\NormalTok{(mod2g)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1180,7 +1323,7 @@ here}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{MuMIn}\OperatorTok{::}\KeywordTok{r.squaredGLMM}\NormalTok{(mod2g)}
+\NormalTok{MuMIn::}\KeywordTok{r.squaredGLMM}\NormalTok{(mod2g)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1201,8 +1344,8 @@ There are lots of helpful packages for this, including
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{stargazer}\OperatorTok{::}\KeywordTok{stargazer}\NormalTok{(mod2g)}
-\NormalTok{sjPlot}\OperatorTok{::}\KeywordTok{sjt.lmer}\NormalTok{(mod2g)}
+\NormalTok{stargazer::}\KeywordTok{stargazer}\NormalTok{(mod2g)}
+\NormalTok{sjPlot::}\KeywordTok{sjt.lmer}\NormalTok{(mod2g)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1250,8 +1393,8 @@ Marginal \(R^2\) & \(R^2_m\)\tabularnewline
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{(mod2g)}
-\NormalTok{broom}\OperatorTok{::}\KeywordTok{glance}\NormalTok{(mod2g)}
+\NormalTok{broom::}\KeywordTok{tidy}\NormalTok{(mod2g)}
+\NormalTok{broom::}\KeywordTok{glance}\NormalTok{(mod2g)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1292,7 +1435,7 @@ Marginal \(R^2\) & \(R^2_m\)\tabularnewline
 \begin{Shaded}
 \begin{Highlighting}[]
 \KeywordTok{options}\NormalTok{(}\DataTypeTok{knitr.kable.NA =} \StringTok{''}\NormalTok{)}
-\NormalTok{knitr}\OperatorTok{::}\KeywordTok{kable}\NormalTok{(tab, }\DataTypeTok{caption =} \StringTok{"Ugly MLM Table Example"}\NormalTok{)}
+\NormalTok{knitr::}\KeywordTok{kable}\NormalTok{(tab, }\DataTypeTok{caption =} \StringTok{"Ugly MLM Table Example"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1306,21 +1449,105 @@ type & term & estimate & CI\tabularnewline
 type & term & estimate & CI\tabularnewline
 \midrule
 \endhead
-Fixed Parts & (Intercept) & 2.72 & (2.65, 2.77)\tabularnewline
-Fixed Parts & age0 & -0.00 & (-0.02, 0.01)\tabularnewline
-Fixed Parts & groupsJail & 0.09 & (0.05, 0.17)\tabularnewline
-Fixed Parts & age0:groupsJail & -0.01 & (-0.03, 0.01)\tabularnewline
-Random Parts & \(\tau{00}\) & 0.16 & (0.13, 0.17)\tabularnewline
+Fixed Parts & (Intercept) & 2.72 & (2.65, 2.79)\tabularnewline
+Fixed Parts & age0 & -0.00 & (-0.01, 0.01)\tabularnewline
+Fixed Parts & groupsJail & 0.09 & (-0.01, 0.16)\tabularnewline
+Fixed Parts & age0:groupsJail & -0.01 & (-0.02, 0.01)\tabularnewline
+Random Parts & \(\tau{00}\) & 0.16 & (0.12, 0.20)\tabularnewline
 Random Parts & \(\tau_{11}\) & 0.00 & (0.00, 0.00)\tabularnewline
-Random Parts & \(\tau_{10}\) & 0.10 & (0.26, 0.05)\tabularnewline
-Random Parts & \(\hat{\sigma^2}\) & 0.19 & (0.17, 0.20)\tabularnewline
-mod\_terms & ICC & 0.46 &\tabularnewline
-mod\_terms & \(R^2_m\) & 0.01 &\tabularnewline
-mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
+Random Parts & \(\tau_{10}\) & 0.10 & (1.00, 0.03)\tabularnewline
+Random Parts & \(\hat{\sigma^2}\) & 0.19 & (0.17, 0.21)\tabularnewline
+Model Terms & ICC & 0.46 &\tabularnewline
+Model Terms & \(R^2_m\) & 0.01 &\tabularnewline
+Model Terms & \(R^2_c\) & 0.45 &\tabularnewline
 \bottomrule
 \end{longtable}
 
-\normalsize
+\end{frame}
+
+\begin{frame}[fragile]{Side Note: Creating MLM Tables}
+
+\tiny
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{library}\NormalTok{(kableExtra)}
+\KeywordTok{options}\NormalTok{(}\DataTypeTok{knitr.kable.NA =} \StringTok{''}\NormalTok{)}
+\NormalTok{knitr::}\KeywordTok{kable}\NormalTok{(tab %>%}\StringTok{ }\KeywordTok{select}\NormalTok{(-type) %>%}
+\StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{term =} \KeywordTok{gsub}\NormalTok{(}\StringTok{"[()]"}\NormalTok{, }\StringTok{""}\NormalTok{, term)),}
+             \DataTypeTok{caption =} \StringTok{"Ugly MLM Table Example"}\NormalTok{, }\DataTypeTok{format =} \StringTok{"latex"}\NormalTok{, }
+             \DataTypeTok{longtable =} \NormalTok{T, }\DataTypeTok{booktabs =} \NormalTok{T, }\DataTypeTok{escape =} \NormalTok{F) %>%}
+\StringTok{  }\KeywordTok{group_rows}\NormalTok{(}\StringTok{"Fixed"}\NormalTok{, }\DecValTok{1}\NormalTok{,}\DecValTok{4}\NormalTok{) %>%}\StringTok{ }
+\StringTok{  }\KeywordTok{group_rows}\NormalTok{(}\StringTok{"Random"}\NormalTok{, }\DecValTok{5}\NormalTok{,}\DecValTok{9}\NormalTok{) %>%}
+\StringTok{  }\KeywordTok{group_rows}\NormalTok{(}\StringTok{"Model"}\NormalTok{, }\DecValTok{9}\NormalTok{,}\DecValTok{11}\NormalTok{) %>%}
+\StringTok{  }\CommentTok{#kable_styling(latex_options = c("striped","repeat_header"),full_width = F)}
+\StringTok{  }\KeywordTok{add_header_above}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{" "}\NormalTok{, }\StringTok{"Model 1"} \NormalTok{=}\StringTok{ }\DecValTok{2}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{longtable}[t]{lll}
+\caption{\label{tab:unnamed-chunk-26}Ugly MLM Table Example}\\
+\toprule
+\multicolumn{1}{c}{ } & \multicolumn{2}{c}{Model 1} \\
+\cmidrule(l{2pt}r{2pt}){2-3}
+term & estimate & CI\\
+\midrule
+\addlinespace[0.5em]
+\multicolumn{3}{l}{\textbf{Fixed}}\\
+\hspace{1em}Intercept & 2.72 & (2.65, 2.79)\\
+\hspace{1em}age0 & -0.00 & (-0.01, 0.01)\\
+\hspace{1em}groupsJail & 0.09 & (-0.01, 0.16)\\
+\hspace{1em}age0:groupsJail & -0.01 & (-0.02, 0.01)\\
+\addlinespace[0.5em]
+\multicolumn{3}{l}{\textbf{Random}}\\
+\hspace{1em}$\tau{00}$ & 0.16 & (0.12, 0.20)\\
+\hspace{1em}$\tau_{11}$ & 0.00 & (0.00, 0.00)\\
+\hspace{1em}$\tau_{10}$ & 0.10 & (1.00, 0.03)\\
+$\hat{\sigma^2}$ & 0.19 & (0.17, 0.21)\\
+\addlinespace[0.5em]
+\multicolumn{3}{l}{\textbf{Model}}\\
+\hspace{1em}\hspace{1em}ICC & 0.46 & \\
+$R^2_m$ & 0.01 & \\
+$R^2_c$ & 0.45 & \\
+\bottomrule
+\end{longtable}
+
+\end{frame}
+
+\begin{frame}[fragile]{Side Note: Creating MLM Tables}
+
+\footnotesize
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{papaja::}\KeywordTok{apa_table}\NormalTok{(tab %>%}\StringTok{ }\KeywordTok{select}\NormalTok{(-type),}\DataTypeTok{caption =} \StringTok{"MLM Table Example"}\NormalTok{, }
+    \DataTypeTok{na_string =} \StringTok{""}\NormalTok{, }\DataTypeTok{stub_indents =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{Fixed =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\NormalTok{:}\DecValTok{4}\NormalTok{), }\DataTypeTok{Random =} \KeywordTok{c}\NormalTok{(}\DecValTok{5}\NormalTok{:}\DecValTok{11}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+(\#tab:unnamed-chunk-27)\emph{MLM Table Example}
+
+\begin{longtable}[]{@{}lll@{}}
+\toprule
+term & estimate & CI\tabularnewline
+\midrule
+\endhead
+Fixed & &\tabularnewline
+~~~(Intercept) & 2.72 & (2.65, 2.79)\tabularnewline
+~~~age0 & -0.00 & (-0.01, 0.01)\tabularnewline
+~~~groupsJail & 0.09 & (-0.01, 0.16)\tabularnewline
+~~~age0:groupsJail & -0.01 & (-0.02, 0.01)\tabularnewline
+Random & &\tabularnewline
+~~~\(\tau{00}\) & 0.16 & (0.12, 0.20)\tabularnewline
+~~~\(\tau_{11}\) & 0.00 & (0.00, 0.00)\tabularnewline
+~~~\(\tau_{10}\) & 0.10 & (1.00, 0.03)\tabularnewline
+~~~\(\hat{\sigma^2}\) & 0.19 & (0.17, 0.21)\tabularnewline
+~~~ICC & 0.46 &\tabularnewline
+~~~\(R^2_m\) & 0.01 &\tabularnewline
+~~~\(R^2_c\) & 0.45 &\tabularnewline
+\normalsize & &\tabularnewline
+\bottomrule
+\end{longtable}
 
 \end{frame}
 
@@ -1331,9 +1558,9 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{# categorical}
-\KeywordTok{sjp.int}\NormalTok{(mod2g, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =}\NormalTok{ F, }\DataTypeTok{swap.pred =}\NormalTok{ T)}
+\KeywordTok{sjp.int}\NormalTok{(mod2g, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =} \NormalTok{F, }\DataTypeTok{swap.pred =} \NormalTok{T)}
 \CommentTok{# continuous}
-\KeywordTok{sjp.int}\NormalTok{(mod1b, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =}\NormalTok{ F, }\DataTypeTok{swap.pred =}\NormalTok{ T, }
+\KeywordTok{sjp.int}\NormalTok{(mod1b, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =} \NormalTok{F, }\DataTypeTok{swap.pred =} \NormalTok{T, }
         \DataTypeTok{mdrt.values =} \StringTok{"meansd"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
@@ -1346,11 +1573,11 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{sjp.int}\NormalTok{(mod2g, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =}\NormalTok{ F, }\DataTypeTok{swap.pred =}\NormalTok{ T)}
+\KeywordTok{sjp.int}\NormalTok{(mod2g, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =} \NormalTok{F, }\DataTypeTok{swap.pred =} \NormalTok{T)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-27-1.pdf}
+\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-29-1.pdf}
 
 \end{frame}
 
@@ -1360,11 +1587,11 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\KeywordTok{sjp.int}\NormalTok{(mod1b, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =}\NormalTok{ F, }\DataTypeTok{swap.pred =}\NormalTok{ T, }\DataTypeTok{mdrt.values =} \StringTok{"meansd"}\NormalTok{)}
+\KeywordTok{sjp.int}\NormalTok{(mod1b, }\DataTypeTok{type =} \StringTok{"eff"}\NormalTok{, }\DataTypeTok{p.kr =} \NormalTok{F, }\DataTypeTok{swap.pred =} \NormalTok{T, }\DataTypeTok{mdrt.values =} \StringTok{"meansd"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-29-1.pdf}
+\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-31-1.pdf}
 
 \normalsize  
 
@@ -1381,14 +1608,14 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 \CommentTok{# create the lsmeans object}
 \NormalTok{lsgroups   <-}\StringTok{ }\KeywordTok{lsmeans}\NormalTok{(ref.grid2g, }\StringTok{"groups"}\NormalTok{)}
 \CommentTok{# compact letter display}
-\KeywordTok{cld}\NormalTok{(lsgroups, }\DataTypeTok{alpha =}\NormalTok{ .}\DecValTok{10}\NormalTok{)}
+\KeywordTok{cld}\NormalTok{(lsgroups, }\DataTypeTok{alpha =} \NormalTok{.}\DecValTok{10}\NormalTok{)}
 \CommentTok{# plot}
 \KeywordTok{plot}\NormalTok{(lsgroups)}
 \CommentTok{# contrasts of the ref.grid object}
 \KeywordTok{contrast}\NormalTok{(ref.grid2g, }\DataTypeTok{method =} \StringTok{"eff"}\NormalTok{)}
 \CommentTok{# comparisons}
 \NormalTok{groups.sum <-}\StringTok{ }\KeywordTok{summary}\NormalTok{(lsgroups, }\DataTypeTok{infer =} \KeywordTok{c}\NormalTok{(}\OtherTok{TRUE}\NormalTok{,}\OtherTok{TRUE}\NormalTok{), }
-                      \DataTypeTok{level =}\NormalTok{ .}\DecValTok{90}\NormalTok{, }\DataTypeTok{adjust =} \StringTok{"bon"}\NormalTok{, }\DataTypeTok{by =} \StringTok{"groups"}\NormalTok{)}
+                      \DataTypeTok{level =} \NormalTok{.}\DecValTok{90}\NormalTok{, }\DataTypeTok{adjust =} \StringTok{"bon"}\NormalTok{, }\DataTypeTok{by =} \StringTok{"groups"}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1436,7 +1663,7 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{# compact letter display}
-\KeywordTok{cld}\NormalTok{(lsgroups, }\DataTypeTok{alpha =}\NormalTok{ .}\DecValTok{10}\NormalTok{)}
+\KeywordTok{cld}\NormalTok{(lsgroups, }\DataTypeTok{alpha =} \NormalTok{.}\DecValTok{10}\NormalTok{)}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1461,7 +1688,7 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-35-1.pdf}
+\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-37-1.pdf}
 
 \end{frame}
 
@@ -1493,7 +1720,7 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 \begin{Highlighting}[]
 \CommentTok{# comparisons}
 \NormalTok{(groups.sum <-}\StringTok{ }\KeywordTok{summary}\NormalTok{(lsgroups, }\DataTypeTok{infer =} \KeywordTok{c}\NormalTok{(}\OtherTok{TRUE}\NormalTok{,}\OtherTok{TRUE}\NormalTok{), }
-          \DataTypeTok{level =}\NormalTok{ .}\DecValTok{90}\NormalTok{, }\DataTypeTok{adjust =} \StringTok{"bon"}\NormalTok{, }\DataTypeTok{by =} \StringTok{"groups"}\NormalTok{))}
+          \DataTypeTok{level =} \NormalTok{.}\DecValTok{90}\NormalTok{, }\DataTypeTok{adjust =} \StringTok{"bon"}\NormalTok{, }\DataTypeTok{by =} \StringTok{"groups"}\NormalTok{))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -1514,7 +1741,7 @@ mod\_terms & \(R^2_c\) & 0.45 &\tabularnewline
 
 \begin{frame}{Time Invariant Predictors: Example - 3 level group}
 
-\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-38-1.pdf}
+\includegraphics{Conditional_Models_files/figure-beamer/unnamed-chunk-40-1.pdf}
 
 \end{frame}
 
@@ -1549,8 +1776,8 @@ group}
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{mod3g <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{groups }\OperatorTok{+}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{groups }\OperatorTok{+}\StringTok{ }
-\StringTok{                }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
+\NormalTok{mod3g <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{groups +}\StringTok{ }\NormalTok{age0*groups +}\StringTok{ }
+\StringTok{                }\NormalTok{(age0|PROC_CID), }\DataTypeTok{data =} \NormalTok{sample_dat)}
 \KeywordTok{summary}\NormalTok{(mod3g)}
 \end{Highlighting}
 \end{Shaded}
@@ -1645,12 +1872,21 @@ How does this look?
 
 \begin{Shaded}
 \begin{Highlighting}[]
-\NormalTok{modTV1 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{CESD }\OperatorTok{+}\StringTok{ }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }\DataTypeTok{data =}\NormalTok{ sample_dat)}
-\KeywordTok{summary}\NormalTok{(modTV1)}
+\NormalTok{modTV1 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{CESD +}\StringTok{ }\NormalTok{(age0|PROC_CID), }\DataTypeTok{data =} \NormalTok{sample_dat)}
 \end{Highlighting}
 \end{Shaded}
 
+\end{frame}
+
+\begin{frame}[fragile]
+
 \tiny
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{summary}\NormalTok{(modTV1)}
+\end{Highlighting}
+\end{Shaded}
 
 \begin{verbatim}
 ## Linear mixed model fit by REML ['lmerMod']
@@ -1713,12 +1949,12 @@ How does this look?
 \begin{Shaded}
 \begin{Highlighting}[]
 \CommentTok{# creating a dummy variable for time varying categorical depression}
-\NormalTok{sample_dat <-}\StringTok{ }\NormalTok{sample_dat }\OperatorTok{%>%}
+\NormalTok{sample_dat <-}\StringTok{ }\NormalTok{sample_dat %>%}
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{depressed =} 
-           \KeywordTok{factor}\NormalTok{(}\KeywordTok{ifelse}\NormalTok{(CESD }\OperatorTok{<=}\StringTok{ }\FloatTok{1.5}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{), }\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{), }
+           \KeywordTok{factor}\NormalTok{(}\KeywordTok{ifelse}\NormalTok{(CESD <=}\StringTok{ }\FloatTok{1.5}\NormalTok{, }\DecValTok{0}\NormalTok{, }\DecValTok{1}\NormalTok{), }\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{), }
                   \DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"Depressed"}\NormalTok{, }\StringTok{"Not Depressed"}\NormalTok{)))}
-\NormalTok{modTV2 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek }\OperatorTok{~}\StringTok{ }\NormalTok{age0 }\OperatorTok{+}\StringTok{ }\NormalTok{depressed }\OperatorTok{+}\StringTok{ }\NormalTok{(age0}\OperatorTok{|}\NormalTok{PROC_CID), }
-               \DataTypeTok{data =}\NormalTok{ sample_dat)}
+\NormalTok{modTV2 <-}\StringTok{ }\KeywordTok{lmer}\NormalTok{(SensSeek ~}\StringTok{ }\NormalTok{age0 +}\StringTok{ }\NormalTok{depressed +}\StringTok{ }\NormalTok{(age0|PROC_CID), }
+               \DataTypeTok{data =} \NormalTok{sample_dat)}
 \KeywordTok{summary}\NormalTok{(modTV2)}
 \end{Highlighting}
 \end{Shaded}
@@ -1775,3 +2011,5 @@ errors}\label{autoregressive-models-autoregressive-errors}
 
 \section{cohen's d - changing intercept with 0 at last time
 point}\label{cohens-d---changing-intercept-with-0-at-last-time-point}
+
+\end{document}
