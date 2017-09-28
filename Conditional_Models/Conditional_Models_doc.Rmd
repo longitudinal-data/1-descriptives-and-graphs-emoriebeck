@@ -5,6 +5,7 @@ date: "9/7/2017"
 output: 
   pdf_document:
     keep_tex: yes
+    toc: yes
     includes:
             in_header:
                 header.tex
@@ -459,15 +460,18 @@ knitr::kable(tab, caption = "Ugly MLM Table Example")
 ```{r, results = 'asis'}
 library(kableExtra)
 options(knitr.kable.NA = '')
-knitr::kable(tab %>% select(-type) %>%
+knitr::kable(tab %>% #select(-type) %>%
     mutate(term = gsub("[()]", "", term)),
-             caption = "Ugly MLM Table Example", format = "latex", 
-             longtable = T, booktabs = T, escape = F) %>%
-  group_rows("Fixed", 1,4) %>% 
-  group_rows("Random", 5,9) %>%
-  group_rows("Model", 9,11) %>%
+             caption = "Not Quite Right kableExtra MLM Table Example", 
+    format = "latex", 
+    #longtable = T, 
+    booktabs = T, escape = F) %>%
+  # group_rows("Fixed", 1,4) %>% 
+  # group_rows("Random", 5,9) %>%
+  # group_rows("Model", 9,11) %>%
+  collapse_rows(1) %>%
   #kable_styling(latex_options = c("striped","repeat_header"),full_width = F)
-  add_header_above(c(" ", "Model 1" = 2))
+  add_header_above(c(" ", " ", "Model 1" = 2))
   
 ```
 
@@ -475,7 +479,7 @@ knitr::kable(tab %>% select(-type) %>%
 ### Alternative: `papaja` + `apa_table()`  
 \small
 ```{r, results = 'asis'}
-papaja::apa_table(tab %>% select(-type),caption = "MLM Table Example", 
+papaja::apa_table(tab %>% select(-type),caption = "papaja MLM Table Example", 
     na_string = "", stub_indents = list(Fixed = c(1:4), Random = c(5:11)))
 ```
 \normalsize

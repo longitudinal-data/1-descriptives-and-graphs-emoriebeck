@@ -17,6 +17,8 @@ library(plyr)
 library(tidyverse)
 library(psych)
 library(googlesheets)
+library(broom)
+library(knitr)
 library(lme4)
 library(gridExtra)
 library(stargazer)
@@ -25,27 +27,143 @@ library(stringr)
 
 ##Working Directory
 ```{r}
-data_path <- "https://github.com/longitudinal-data/1-descriptives-and-graphs-emoriebeck/assigment2/raw/master"
+data_path <- "https://github.com/longitudinal-data/1-descriptives-and-graphs-emoriebeck/raw/master"
+load(url(paste(data_path, "assignment2/data.RData", sep = "/")))
 ```
 
 1.Run linear models on all of your subjects (a basic regression). What is the average intercept, the average slope?
 
 ```{r}
-load(url(paste(data_path, "data.RData", sep = "/")))
+mod <- lm(value ~ age0, pred_long %>% filter(item == "SensSeek"))
+
+aug.dat <- augment(mod)
+
+aug.dat %>%
+  ggplot(aes(x = age0, y = .std.resid)) +
+  geom_point() +
+  geom_smooth(method = "lm") +
+  theme_classic()
+
+grid <- pred_long %>% 
+  filter(item == "SensSeek") %>%
+  data_grid(age0, .model = mod) %>% 
+  add_predictions(mod)
+grid
 ```
 
 Now run a mlm/lmer model with only a random intercept. What is the ICC? What does residual variance look like compared to linear model? Create a graph to show this effect.
 
+```{r}
+
+mod1 <- lmer(value ~ 1 + (1|PROC_CID), data = pred_long %>% filter(item == "SensSeek"))
+ci1 <- confint(mod1,nsim = 10, method = "boot")
+aug.dat1 <- augment(mod1)
+
+aug.dat %>% mutate(mod = "linear") %>%
+  full_join(aug.dat1 %>% mutate(mod = "mlm")) %>%
+  ggplot(aes(x = .resid, fill = mod)) +
+  geom_density(alpha = .5) +
+  theme_classic()
+
+grid <- pred_long %>% 
+  filter(item == "SensSeek") %>%
+  data_grid(age0, .model = mod1) %>% 
+  add_predictions(mod1)
+grid
+```
+
+
 Introduce a fixed slope term. What is the difference in terms of the fixed effects estimates between this estimate and the previous? Of the residual standard error? Create a graph to show both fixed effects estimates and the CIs around them.
+
+```{r}
+mod2 <- lmer(value ~ age0 + (1|PROC_CID), data = pred_long %>% filter(item == "SensSeek"))
+ci2 <- confint(mod2,nsim = 10, method = "boot")
+fixef(mod1) - fixef(mod2)[1]
+sigma(mod1) - sigma(mod2)
+
+grid <- pred_long %>% 
+  filter(item == "SensSeek") %>%
+  data_grid(age0, .model = mod2) %>% 
+  add_predictions(mod2)
+grid
+
+tibble(
+  model = c("Random Int Only", "Fixed Slope"),
+  Intercept = c(fixef(mod1), fixef(mod2)[1]),
+  lower = c(ci1[3,1], ci2[3,1]),
+  upper = c(ci1[3,2], ci2[3,2])
+) %>%
+  ggplot(aes(x = model, y = Intercept, ymin = lower, ymax = upper)) +
+    geom_errorbar(position = "dodge", stat = "identity", width = .1) +
+    geom_point(aes(color = model), size = 4) +
+    theme_classic()
+```
+
 
 Run an additional model with a random slope. How does this change compare to the previous model? Should you keep the random slope or not?
 
+```{r}
+mod3 <- lmer(value ~ age0 + (age0|PROC_CID), data = pred_long %>% filter(item == "SensSeek"))
+ci3 <- confint(mod3,nsim = 10, method = "boot")
+
+fixef(mod2) - fixef(mod3)
+sigma(mod2) - sigma(mod3)
+
+grid <- pred_long %>% 
+  filter(item == "SensSeek") %>%
+  data_grid(age0, .model = mod3) %>% 
+  add_predictions(mod3)
+grid
+
+anova(mod2, mod3)
+```
+The residual variance is slightly smaller with the addition of the random slope component. The intercept is slightly larger than in the previous model without the random slope and the slope is slightly steeper in the model with the random slope. Given that the overall mean change is near 0, I would retain the random slope because this means that many of the random slopes likely go in different directions.
+
+A likelihood ratio test suggests that the random slope model fits better than the random intercept only model. On the whole, I would retain the random slope component
+
 Interpret the correlation between the slope and the intercept.
+The random slopes and intercepts are almost perfectly negatively correlated. This means that people with high intercepts don't change much and people with low intercepts change a lot. However, this is bad. We should not see almost perfect correlations between random slopes and intercepts.  
 
 Create a density plot of the random effects from your final model.
+```{r}
+tbl_df(ranef(mod3)[[1]]) %>%
+  gather(key = param, value = value) %>%
+  ggplot(aes(x = value, fill = param)) + 
+    geom_density() +
+    facet_grid(.~param, scale = "free") +
+    theme_classic()
+```
+
 
 Create a catepilar plot of the random effects. Is there any person that seems odd in terms of a large standard errors around intercept and slope estimates?
 
+```{r}
+library(merTools)
+plotREsim(REsim(mod3))
+```
+
+
 Create a plot of the trajectory, along with a spaghetti plot of each person’s individual slope. Set the alpha level (transparency) on the individual slopes to make them easier to see.
 
-Create a plot of the trajectory, along with a spagehtti plot of each person’s individual slope. Set the alpha level (transperancy) on the individual slopes to make them easier to see.
+```{r}
+fixed.frame <- 
+  tbl_df(expand.grid(Intercept = 1, 
+            age0 = seq(-4,10,1)))
+
+fixed.frame$value <- as.vector(as.matrix(fixed.frame) %*% fixef(mod3))
+
+random.frame <- tbl_df(expand.grid(PROC_CID = as.character(unique(mod3@frame$PROC_CID)),
+                   t.age0 = seq(-4,10,1)))
+
+random.frame <- data.frame(coef(mod3)[[1]]) %>% 
+  mutate(PROC_CID = rownames(.)) %>%
+  full_join(random.frame) %>%
+  mutate(value = X.Intercept. + age0*t.age0)
+
+tbl_df(random.frame) %>%
+  ggplot(aes(x = t.age0, y = value)) + 
+  geom_point() +
+  geom_line(aes(color = PROC_CID), alpha = .2, color = gray, size = .1) +
+  geom_line(data = fixed.frame, aes(x = age0, y = value), size = 2) +
+  theme_classic()
+```
