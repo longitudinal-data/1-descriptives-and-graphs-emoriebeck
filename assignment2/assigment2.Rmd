@@ -155,15 +155,25 @@ fixed.frame$value <- as.vector(as.matrix(fixed.frame) %*% fixef(mod3))
 random.frame <- tbl_df(expand.grid(PROC_CID = as.character(unique(mod3@frame$PROC_CID)),
                    t.age0 = seq(-4,10,1)))
 
+random.frame <-
+  pred_long %>% filter(item == "SensSeek") %>%
+  data_grid(age0, PROC_CID, .model = mod3) %>% 
+  add_predictions(mod3)
+
 random.frame <- data.frame(coef(mod3)[[1]]) %>% 
   mutate(PROC_CID = rownames(.)) %>%
   full_join(random.frame) %>%
   mutate(value = X.Intercept. + age0*t.age0)
 
+sample()
+
 tbl_df(random.frame) %>%
-  ggplot(aes(x = t.age0, y = value)) + 
-  geom_point() +
-  geom_line(aes(color = PROC_CID), alpha = .2, color = gray, size = .1) +
+  select(age0, PROC_CID, pred) %>%
+  filter(PROC_CID %in% subs) %>%
+  mutate_all(as.numeric) %>%
+  ggplot(aes(x = age0, y = pred)) + 
+  #geom_point() +
+  geom_line(aes(group = PROC_CID), color = "gray", size = .1) +
   geom_line(data = fixed.frame, aes(x = age0, y = value), size = 2) +
   theme_classic()
 ```

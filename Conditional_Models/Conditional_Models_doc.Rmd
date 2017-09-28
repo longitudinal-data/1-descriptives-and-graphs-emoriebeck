@@ -9,6 +9,8 @@ output:
     includes:
             in_header:
                 header.tex
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -394,31 +396,31 @@ Below is code that *should* work for all models. Just run the function and save 
 # unless you add additional random effects terms
 ## fixed effects first ##
 table_fun <- function(model){
-    fixed <- broom::tidy(mod2g) %>% filter(group == "fixed") %>%
+  fixed <- broom::tidy(model) %>% filter(group == "fixed") %>%
     select(term, estimate) 
   ## add random effects ##
-  rand <- broom::tidy(mod2g) %>% filter(group != "fixed") %>%
+  rand <- broom::tidy(model) %>% filter(group != "fixed") %>%
     select(term, estimate)
   ## get confidence intervals ##
-  CI <- data.frame(confint.merMod(mod2g, method = "boot", nsim = 10)) %>%
+  CI <- data.frame(confint.merMod(model, method = "boot", nsim = 10)) %>%
     mutate(term = rownames(.)) %>% setNames(c("lower", "upper", "term"))
   
   ## Get ICC & R2 values ##
-  ICC <- reghelper::ICC(mod2g)
-  R2 <- MuMIn::r.squaredGLMM(mod2g)
+  ICC <- reghelper::ICC(model)
+  R2 <- MuMIn::r.squaredGLMM(model)
   
   ## format the fixed effects
   fixed <- fixed %>% left_join(CI %>% filter(!grepl(".sig", term))) %>%
     mutate(type = "Fixed Parts")
   
   rand <- rand %>%
-    mutate(term = mapvalues(term, unique(term), 
-            c("$\\tau{00}$", "$\\tau_{11}$", "$\\tau_{10}$", "$\\hat{\\sigma^2}$")),
-           estimate = estimate^2) %>%
+    mutate(estimate = ifelse(grepl("cor", term) == T, estimate, estimate^2),
+          term = mapvalues(term, unique(term), 
+           c("$\\tau_{00}$", "$\\tau_{11}$", "$\\tau_{10}$", "$\\hat{\\sigma^2}$"))) %>%
     left_join(
       CI %>% filter(grepl(".sig", term)) %>%
         mutate(term = mapvalues(term, unique(term), 
-            c("$\\tau{00}$", "$\\tau_{10}$", "$\\tau_{11}$", "$\\hat{\\sigma^2}$")),
+            c("$\\tau_{00}$", "$\\tau_{10}$", "$\\tau_{11}$", "$\\hat{\\sigma^2}$")),
             lower = lower^2, upper = upper^2)) %>%
     mutate(type = "Random Parts")
   
@@ -435,7 +437,9 @@ table_fun <- function(model){
     select(-lower, -upper) %>%
     full_join(mod_terms) %>%
     mutate(estimate = sprintf("%.2f", estimate)) %>%
+    dplyr::rename(b = estimate) %>%
     select(type, everything())
+  return(tab)
 }
 # you can use this with papaja and the apa_table function pretty easily
 # the trick is that if you are not using the papaja template, the proper
@@ -445,6 +449,7 @@ table_fun <- function(model){
 # the header.tex file with the proper packages
 
 tab <- table_fun(mod2g)
+
 ```
 
 ###Basic: `kable()`  
@@ -480,9 +485,46 @@ knitr::kable(tab %>% #select(-type) %>%
 \small
 ```{r, results = 'asis'}
 papaja::apa_table(tab %>% select(-type),caption = "papaja MLM Table Example", 
-    na_string = "", stub_indents = list(Fixed = c(1:4), Random = c(5:11)))
+    na_string = "", stub_indents = list(Fixed = c(1:4), Random = c(5:8), Summary = c(9:11)),
+    col_spanners = list(`Sensation Seeking` = c(2,3)))
 ```
 \normalsize
+
+###The Case of Multiple Models
+```{r, results = 'asis'}
+# basically you can run this multiple times and then join the data frames together. 
+# The only trick is that you'll have to change the column names to make sure they are distinct.
+# My favorite way of doing this is with the purrr package in R.
+# So basically, you make a dataframe of your models, which looks like this:
+
+mod.df <- tibble(
+  outcome = c("Model 2g", "Model 3g", "Model Cont"), # just plug in whatever name for your outcome
+  mod = c(mod2g, mod3g, mod1b) # basically just listing models that correspond to your outcomes
+)
+
+# then you use purrr
+
+mod.df.long <- mod.df %>%
+  mutate(tab = map(mod, table_fun)) %>%
+  unnest(tab, .drop = T) 
+
+table.df <- mod.df.long %>%
+  gather(key = param, value = value, b, CI) %>%
+  unite(param, outcome, param, sep = ".") %>%
+  spread(key = param, value = value) %>%
+  mutate(type = factor(type, levels = c("Fixed Parts", "Random Parts", "Model Terms"))) %>%
+  arrange(type)
+
+# then you can use apa_table or kable + kableExtra to make them pretty
+options(papaja.na_string = " ")
+papaja::apa_table(table.df %>% select(-type), caption = "Multi-Model Table",
+          col_spanners = list(`2 group` = c(2,3), `3 group` = c(4,5), `Continuous` = c(6,7)),
+          stub_indents = list(Fixed = seq(1,8), Random = seq(9,12), `Model Terms` = seq(13,15)),
+          na_string = " ", 
+          col.names = c(" ", rep(c("b", "CI"), times = 3)),
+          align = c("l", rep("c", 6)))
+```
+
 
 ##Side Note: Plotting
 ### Lazy Method: `sjPlot` + `sjt.int()`  
@@ -499,30 +541,19 @@ sjp.int(mod2g, type = "eff", p.kr = F, swap.pred = T)
 sjp.int(mod1b, type = "eff", p.kr = F, swap.pred = T, mdrt.values = "meansd")
 ```
 
-###More advanced: `expand.grid()` + `fixef()` + `ggplot2()`  
+###Medium Advanced: Using the `predict()` function
 ####Categorical
-```{r, echo=T, eval=T}
-# example for categorical
+```{r}
 fixed.frame <- 
-  data.frame(
-    expand.grid(
-      # here, you add values for your time variable and predictors
-      age0 = seq(0,10,2), 
-      groupsNone = c(0,1))) %>%
-  # now take care of interactions and add an intercept
-  mutate(`age0:groupsNone` = age0*groupsNone,
-         Intercept = 1) %>%
-  # reordering everything
-  select(Intercept, everything())
-
-# multiplying to get values for model frame
-fixed.frame$value <- as.vector(as.matrix(fixed.frame) %*% fixef(mod2g))
+  data.frame(expand.grid(age0 = seq(0,10,2), 
+             groups = c("None","Jail"))) %>%
+  mutate(pred = predict(mod2g, newdata = ., re.form = NA))
 
 fixed.frame %>%
-  mutate(groups = factor(groupsNone, levels = c(0,1), labels = c("Jail", "None")),
-         age = age0 + 14) %>%
-  ggplot(aes(x = age, y = value, color = groups)) +
+  mutate(age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = groups)) +
     geom_line(size = 2) + 
+    lims(y = c(0,4)) +
     labs(x = "Age", y = "Sensation Seeking Composite",
          title = "2 Group Time Invariant Conditional Growth Models") +
     theme_classic() +
@@ -534,10 +565,77 @@ fixed.frame %>%
 ```
 
 ####Continuous
+```{r}
+fixed.frame <- sample_dat %>%
+  summarise(mean = mean(DemPweight, na.rm = T), 
+            sd = sd(DemPweight, na.rm = T))
+
+fixed.frame <- 
+  data.frame(
+    expand.grid(
+      # here, you add values for your time variable and predictors
+      age0 = seq(0,10,2), 
+      DemPweight = c(fixed.frame$mean-fixed.frame$sd,
+                     fixed.frame$mean,
+                     fixed.frame$mean+fixed.frame$sd))) %>%
+  mutate(pred = predict(mod1b, newdata = ., re.form = NA))
+
+
+fixed.frame %>%
+  mutate(Weight = factor(DemPweight, levels = unique(DemPweight), labels = c("-1SD", "0SD", "1SD")),
+         age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = Weight)) +
+    geom_line(size = 2) + 
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "Continuous Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+###More advanced: `expand.grid()` + `fixef()` + `ggplot2()`  
+####Categorical
+```{r, echo=T, eval=T}
+# example for categorical
+fixed.frame <- 
+  data.frame(
+    expand.grid(
+      # here, you add values for your time variable and predictors
+      Intercept = 1,
+      age0 = seq(0,10,2), 
+      groupsNone = c(0,1))) %>%
+  # now take care of interactions and add an intercept
+  mutate(`age0:groupsNone` = age0*groupsNone)
+
+# multiplying to get values for model frame
+fixed.frame$pred <- as.vector(as.matrix(fixed.frame) %*% fixef(mod2g))
+
+fixed.frame %>%
+  mutate(groups = factor(groupsNone, levels = c(0,1), labels = c("Jail", "None")),
+         age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = groups)) +
+    geom_line(size = 2) + 
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "2 Group Time Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+####Continuous
 
 ```{r, echo = T, eval = T}
+detach(package:plyr)    
+library(dplyr)
 # example for continuous
 fixed.frame <- sample_dat %>%
+  group_by(PROC_CID) %>%
+  summarise(DemPweight = mean(DemPweight, na.rm = T)) %>%
+  ungroup() %>%
   summarise(mean = mean(DemPweight, na.rm = T), 
             sd = sd(DemPweight, na.rm = T))
 
@@ -575,6 +673,39 @@ fixed.frame %>%
 
 
 \normalsize  
+
+###Random Effects
+####Categorical
+```{r}
+tbl_df(mod3g@frame) %>% select(PROC_CID, age0, groups) %>%
+  mutate(pred = predict(mod3g, newdata = .)) %>%
+  ggplot(aes(x = age0, y = pred, group = PROC_CID, color = groups)) +
+    geom_line(size = .5, alpha = .5) +
+    labs(x = "Age", y = "Predicted Sensation Seeking", 
+         title = "Predicted Random Effect Trajectories\nfor the 3 Group Model") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+####Categorical
+```{r}
+mod1b@frame %>% select(-SensSeek) %>%
+  mutate(pred = predict(mod1b)) %>%
+  ggplot(aes(x = age0, y = pred, group = PROC_CID, color = DemPweight)) +
+    geom_line(size = .5, alpha = .5) +
+    labs(x = "Age", y = "Predicted Sensation Seeking", 
+         title = "Predicted Random Effect Trajectories\nfor the 3 Group Model") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+
 
 ##Side Note: Comparisons with `lsmeans`
 The `lsmeans` package has a lot of useful functions. They are listed below. Then I'll demonstrate them in turn.  
@@ -644,7 +775,7 @@ How does this look?
   \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*time + \beta_{2j}*CESD + \varepsilon{ij}$
   \item \textbf{Level 2:} 
     \begin{itemize} 
-      \item $\beta_{0j} = \gamma_{00} + \gamma_{01} + U_{0j}$
+      \item $\beta_{0j} = \gamma_{00} + U_{0j}$
       \item $\beta_{1j} = \gamma_{10} + U_{1j}$
       \item $\beta_{2j} = \gamma_{20}$
     \end{itemize}
@@ -655,7 +786,7 @@ How does this look?
   \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*age0 + \beta_{2j}*CESD + \varepsilon{ij}$
   \item \textbf{Level 2:} 
     \begin{itemize} 
-      \item $\beta_{0j} = \gamma_{00} + \gamma_{01} + U_{0j}$
+      \item $\beta_{0j} = \gamma_{00} + U_{0j}$
       \item $\beta_{1j} = \gamma_{10} + U_{1j}$
       \item $\beta_{2j} = \gamma_{20}$
     \end{itemize}

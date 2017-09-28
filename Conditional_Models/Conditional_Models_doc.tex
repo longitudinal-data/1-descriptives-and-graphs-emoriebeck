@@ -146,17 +146,6 @@
 \usepackage{pdflscape}
 \usepackage{tabu}
 \usepackage{threeparttable}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{array}
-\usepackage{multirow}
-\usepackage[table]{xcolor}
-\usepackage{wrapfig}
-\usepackage{float}
-\usepackage{colortbl}
-\usepackage{pdflscape}
-\usepackage{tabu}
-\usepackage{threeparttable}
 
 \begin{document}
 \maketitle
@@ -651,15 +640,15 @@ functions}{Side Note: lme4 helper functions}}\label{side-note-lme4-helper-functi
 \end{Shaded}
 
 \begin{verbatim}
-##                       2.5 %       97.5 %
-## .sig01           0.37825912  0.442446652
-## .sig02          -0.59786608 -0.087752901
-## .sig03           0.02074286  0.050678276
-## .sigma           0.41349474  0.459740673
-## (Intercept)      2.61954063  2.822716922
-## age0            -0.01474274  0.004169720
-## groupsJail       0.02965519  0.221246440
-## age0:groupsJail -0.02043541  0.001165393
+##                        2.5 %      97.5 %
+## .sig01           0.350527987 0.434967349
+## .sig02          -1.000000000 0.999999999
+## .sig03           0.001946570 0.045350613
+## .sigma           0.415917502 0.470609407
+## (Intercept)      2.673128594 2.761488523
+## age0            -0.008689551 0.004274218
+## groupsJail       0.021738062 0.165404602
+## age0:groupsJail -0.020663537 0.003186735
 \end{verbatim}
 
 All units of the random effects are in standard deviation units (which
@@ -805,31 +794,31 @@ syntax and the header.tex file with the proper packages.
 \CommentTok{# unless you add additional random effects terms}
 \NormalTok{## fixed effects first ##}
 \NormalTok{table_fun <-}\StringTok{ }\ControlFlowTok{function}\NormalTok{(model)\{}
-\NormalTok{    fixed <-}\StringTok{ }\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{(mod2g) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(group }\OperatorTok{==}\StringTok{ "fixed"}\NormalTok{) }\OperatorTok{%>%}
+\NormalTok{  fixed <-}\StringTok{ }\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{(model) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(group }\OperatorTok{==}\StringTok{ "fixed"}\NormalTok{) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{select}\NormalTok{(term, estimate) }
 \NormalTok{  ## add random effects ##}
-\NormalTok{  rand <-}\StringTok{ }\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{(mod2g) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(group }\OperatorTok{!=}\StringTok{ "fixed"}\NormalTok{) }\OperatorTok{%>%}
+\NormalTok{  rand <-}\StringTok{ }\NormalTok{broom}\OperatorTok{::}\KeywordTok{tidy}\NormalTok{(model) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(group }\OperatorTok{!=}\StringTok{ "fixed"}\NormalTok{) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{select}\NormalTok{(term, estimate)}
 \NormalTok{  ## get confidence intervals ##}
-\NormalTok{  CI <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{confint.merMod}\NormalTok{(mod2g, }\DataTypeTok{method =} \StringTok{"boot"}\NormalTok{, }\DataTypeTok{nsim =} \DecValTok{10}\NormalTok{)) }\OperatorTok{%>%}
+\NormalTok{  CI <-}\StringTok{ }\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{confint.merMod}\NormalTok{(model, }\DataTypeTok{method =} \StringTok{"boot"}\NormalTok{, }\DataTypeTok{nsim =} \DecValTok{10}\NormalTok{)) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{term =} \KeywordTok{rownames}\NormalTok{(.)) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{setNames}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"lower"}\NormalTok{, }\StringTok{"upper"}\NormalTok{, }\StringTok{"term"}\NormalTok{))}
   
 \NormalTok{  ## Get ICC & R2 values ##}
-\NormalTok{  ICC <-}\StringTok{ }\NormalTok{reghelper}\OperatorTok{::}\KeywordTok{ICC}\NormalTok{(mod2g)}
-\NormalTok{  R2 <-}\StringTok{ }\NormalTok{MuMIn}\OperatorTok{::}\KeywordTok{r.squaredGLMM}\NormalTok{(mod2g)}
+\NormalTok{  ICC <-}\StringTok{ }\NormalTok{reghelper}\OperatorTok{::}\KeywordTok{ICC}\NormalTok{(model)}
+\NormalTok{  R2 <-}\StringTok{ }\NormalTok{MuMIn}\OperatorTok{::}\KeywordTok{r.squaredGLMM}\NormalTok{(model)}
   
 \NormalTok{  ## format the fixed effects}
 \NormalTok{  fixed <-}\StringTok{ }\NormalTok{fixed }\OperatorTok{%>%}\StringTok{ }\KeywordTok{left_join}\NormalTok{(CI }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(}\OperatorTok{!}\KeywordTok{grepl}\NormalTok{(}\StringTok{".sig"}\NormalTok{, term))) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{type =} \StringTok{"Fixed Parts"}\NormalTok{)}
   
 \NormalTok{  rand <-}\StringTok{ }\NormalTok{rand }\OperatorTok{%>%}
-\StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{term =} \KeywordTok{mapvalues}\NormalTok{(term, }\KeywordTok{unique}\NormalTok{(term), }
-            \KeywordTok{c}\NormalTok{(}\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau\{00\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{11\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{10\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{hat\{}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{sigma^2\}$"}\NormalTok{)),}
-           \DataTypeTok{estimate =}\NormalTok{ estimate}\OperatorTok{^}\DecValTok{2}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{estimate =} \KeywordTok{ifelse}\NormalTok{(}\KeywordTok{grepl}\NormalTok{(}\StringTok{"cor"}\NormalTok{, term) }\OperatorTok{==}\StringTok{ }\NormalTok{T, estimate, estimate}\OperatorTok{^}\DecValTok{2}\NormalTok{),}
+          \DataTypeTok{term =} \KeywordTok{mapvalues}\NormalTok{(term, }\KeywordTok{unique}\NormalTok{(term), }
+           \KeywordTok{c}\NormalTok{(}\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{00\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{11\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{10\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{hat\{}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{sigma^2\}$"}\NormalTok{))) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{left_join}\NormalTok{(}
 \NormalTok{      CI }\OperatorTok{%>%}\StringTok{ }\KeywordTok{filter}\NormalTok{(}\KeywordTok{grepl}\NormalTok{(}\StringTok{".sig"}\NormalTok{, term)) }\OperatorTok{%>%}
 \StringTok{        }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{term =} \KeywordTok{mapvalues}\NormalTok{(term, }\KeywordTok{unique}\NormalTok{(term), }
-            \KeywordTok{c}\NormalTok{(}\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau\{00\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{10\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{11\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{hat\{}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{sigma^2\}$"}\NormalTok{)),}
+            \KeywordTok{c}\NormalTok{(}\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{00\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{10\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{tau_\{11\}$"}\NormalTok{, }\StringTok{"$}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{hat\{}\CharTok{\textbackslash{}\textbackslash{}}\StringTok{sigma^2\}$"}\NormalTok{)),}
             \DataTypeTok{lower =}\NormalTok{ lower}\OperatorTok{^}\DecValTok{2}\NormalTok{, }\DataTypeTok{upper =}\NormalTok{ upper}\OperatorTok{^}\DecValTok{2}\NormalTok{)) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{type =} \StringTok{"Random Parts"}\NormalTok{)}
   
@@ -846,7 +835,9 @@ syntax and the header.tex file with the proper packages.
 \StringTok{    }\KeywordTok{select}\NormalTok{(}\OperatorTok{-}\NormalTok{lower, }\OperatorTok{-}\NormalTok{upper) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{full_join}\NormalTok{(mod_terms) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{estimate =} \KeywordTok{sprintf}\NormalTok{(}\StringTok{"%.2f"}\NormalTok{, estimate)) }\OperatorTok{%>%}
+\StringTok{    }\NormalTok{dplyr}\OperatorTok{::}\KeywordTok{rename}\NormalTok{(}\DataTypeTok{b =}\NormalTok{ estimate) }\OperatorTok{%>%}
 \StringTok{    }\KeywordTok{select}\NormalTok{(type, }\KeywordTok{everything}\NormalTok{())}
+  \KeywordTok{return}\NormalTok{(tab)}
 \NormalTok{\}}
 \CommentTok{# you can use this with papaja and the apa_table function pretty easily}
 \CommentTok{# the trick is that if you are not using the papaja template, the proper}
@@ -874,21 +865,21 @@ syntax and the header.tex file with the proper packages.
 \begin{longtable}[]{@{}llll@{}}
 \caption{Ugly MLM Table Example}\tabularnewline
 \toprule
-type & term & estimate & CI\tabularnewline
+type & term & b & CI\tabularnewline
 \midrule
 \endfirsthead
 \toprule
-type & term & estimate & CI\tabularnewline
+type & term & b & CI\tabularnewline
 \midrule
 \endhead
-Fixed Parts & (Intercept) & 2.72 & (2.65, 2.74)\tabularnewline
+Fixed Parts & (Intercept) & 2.72 & (2.67, 2.74)\tabularnewline
 Fixed Parts & age0 & -0.00 & (-0.01, 0.01)\tabularnewline
-Fixed Parts & groupsJail & 0.09 & (0.04, 0.18)\tabularnewline
-Fixed Parts & age0:groupsJail & -0.01 & (-0.03, -0.00)\tabularnewline
-Random Parts & \(\tau{00}\) & 0.16 & (0.14, 0.19)\tabularnewline
+Fixed Parts & groupsJail & 0.09 & (0.03, 0.17)\tabularnewline
+Fixed Parts & age0:groupsJail & -0.01 & (-0.03, 0.01)\tabularnewline
+Random Parts & \(\tau_{00}\) & 0.16 & (0.14, 0.17)\tabularnewline
 Random Parts & \(\tau_{11}\) & 0.00 & (0.00, 0.00)\tabularnewline
-Random Parts & \(\tau_{10}\) & 0.10 & (1.00, 0.00)\tabularnewline
-Random Parts & \(\hat{\sigma^2}\) & 0.19 & (0.17, 0.20)\tabularnewline
+Random Parts & \(\tau_{10}\) & -0.31 & (0.23, 1.00)\tabularnewline
+Random Parts & \(\hat{\sigma^2}\) & 0.19 & (0.18, 0.22)\tabularnewline
 Model Terms & ICC & 0.46 &\tabularnewline
 Model Terms & \(R^2_m\) & 0.01 &\tabularnewline
 Model Terms & \(R^2_c\) & 0.45 &\tabularnewline
@@ -927,23 +918,23 @@ Model Terms & \(R^2_c\) & 0.45 &\tabularnewline
 \toprule
 \multicolumn{1}{c}{ } & \multicolumn{1}{c}{ } & \multicolumn{2}{c}{Model 1} \\
 \cmidrule(l{2pt}r{2pt}){3-4}
-type & term & estimate & CI\\
+type & term & b & CI\\
 \midrule
- & Intercept & 2.72 & (2.65, 2.74)\\
+ & Intercept & 2.72 & (2.67, 2.74)\\
 \cmidrule{2-4}
  & age0 & -0.00 & (-0.01, 0.01)\\
 \cmidrule{2-4}
- & groupsJail & 0.09 & (0.04, 0.18)\\
+ & groupsJail & 0.09 & (0.03, 0.17)\\
 \cmidrule{2-4}
-\multirow{-4}{*}{\raggedright\arraybackslash Fixed Parts} & age0:groupsJail & -0.01 & (-0.03, -0.00)\\
+\multirow{-4}{*}{\raggedright\arraybackslash Fixed Parts} & age0:groupsJail & -0.01 & (-0.03, 0.01)\\
 \cmidrule{1-4}
- & $\tau{00}$ & 0.16 & (0.14, 0.19)\\
+ & $\tau_{00}$ & 0.16 & (0.14, 0.17)\\
 \cmidrule{2-4}
  & $\tau_{11}$ & 0.00 & (0.00, 0.00)\\
 \cmidrule{2-4}
- & $\tau_{10}$ & 0.10 & (1.00, 0.00)\\
+ & $\tau_{10}$ & -0.31 & (0.23, 1.00)\\
 \cmidrule{2-4}
-Random Parts & $\hat{\sigma^2}$ & 0.19 & (0.17, 0.20)\\
+Random Parts & $\hat{\sigma^2}$ & 0.19 & (0.18, 0.22)\\
  & ICC & 0.46 & \\
 \cmidrule{2-4}
 Model Terms & $R^2_m$ & 0.01 & \\
@@ -960,7 +951,8 @@ Model Terms & $R^2_c$ & 0.45 & \\
 \begin{Shaded}
 \begin{Highlighting}[]
 \NormalTok{papaja}\OperatorTok{::}\KeywordTok{apa_table}\NormalTok{(tab }\OperatorTok{%>%}\StringTok{ }\KeywordTok{select}\NormalTok{(}\OperatorTok{-}\NormalTok{type),}\DataTypeTok{caption =} \StringTok{"papaja MLM Table Example"}\NormalTok{, }
-    \DataTypeTok{na_string =} \StringTok{""}\NormalTok{, }\DataTypeTok{stub_indents =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{Fixed =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{4}\NormalTok{), }\DataTypeTok{Random =} \KeywordTok{c}\NormalTok{(}\DecValTok{5}\OperatorTok{:}\DecValTok{11}\NormalTok{)))}
+    \DataTypeTok{na_string =} \StringTok{""}\NormalTok{, }\DataTypeTok{stub_indents =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{Fixed =} \KeywordTok{c}\NormalTok{(}\DecValTok{1}\OperatorTok{:}\DecValTok{4}\NormalTok{), }\DataTypeTok{Random =} \KeywordTok{c}\NormalTok{(}\DecValTok{5}\OperatorTok{:}\DecValTok{8}\NormalTok{), }\DataTypeTok{Summary =} \KeywordTok{c}\NormalTok{(}\DecValTok{9}\OperatorTok{:}\DecValTok{11}\NormalTok{)),}
+    \DataTypeTok{col_spanners =} \KeywordTok{list}\NormalTok{(}\StringTok{`}\DataTypeTok{Sensation Seeking}\StringTok{`}\NormalTok{ =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{)))}
 \end{Highlighting}
 \end{Shaded}
 
@@ -970,18 +962,21 @@ Model Terms & $R^2_c$ & 0.45 & \\
 \caption{\label{tab:unnamed-chunk-28}papaja MLM Table Example}
 \begin{tabular}{lll}
 \toprule
-term & \multicolumn{1}{c}{estimate} & \multicolumn{1}{c}{CI}\\
+ & \multicolumn{2}{c}{Sensation Seeking} \\
+\cmidrule(r){2-3}
+term & \multicolumn{1}{c}{b} & \multicolumn{1}{c}{CI}\\
 \midrule
 Fixed &  & \\
-\ \ \ (Intercept) & 2.72 & (2.65, 2.74)\\
+\ \ \ (Intercept) & 2.72 & (2.67, 2.74)\\
 \ \ \ age0 & -0.00 & (-0.01, 0.01)\\
-\ \ \ groupsJail & 0.09 & (0.04, 0.18)\\
-\ \ \ age0:groupsJail & -0.01 & (-0.03, -0.00)\\
+\ \ \ groupsJail & 0.09 & (0.03, 0.17)\\
+\ \ \ age0:groupsJail & -0.01 & (-0.03, 0.01)\\
 Random &  & \\
-\ \ \ $\tau{00}$ & 0.16 & (0.14, 0.19)\\
+\ \ \ $\tau_{00}$ & 0.16 & (0.14, 0.17)\\
 \ \ \ $\tau_{11}$ & 0.00 & (0.00, 0.00)\\
-\ \ \ $\tau_{10}$ & 0.10 & (1.00, 0.00)\\
-\ \ \ $\hat{\sigma^2}$ & 0.19 & (0.17, 0.20)\\
+\ \ \ $\tau_{10}$ & -0.31 & (0.23, 1.00)\\
+\ \ \ $\hat{\sigma^2}$ & 0.19 & (0.18, 0.22)\\
+Summary &  & \\
 \ \ \ ICC & 0.46 & \\
 \ \ \ $R^2_m$ & 0.01 & \\
 \ \ \ $R^2_c$ & 0.45 & \\
@@ -992,6 +987,79 @@ Random &  & \\
 \end{table}
 
 \normalsize
+
+\subsubsection{The Case of Multiple
+Models}\label{the-case-of-multiple-models}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{# basically you can run this multiple times and then join the data frames together. }
+\CommentTok{# The only trick is that you'll have to change the column names to make sure they are distinct.}
+\CommentTok{# My favorite way of doing this is with the purrr package in R.}
+\CommentTok{# So basically, you make a dataframe of your models, which looks like this:}
+
+\NormalTok{mod.df <-}\StringTok{ }\KeywordTok{tibble}\NormalTok{(}
+  \DataTypeTok{outcome =} \KeywordTok{c}\NormalTok{(}\StringTok{"Model 2g"}\NormalTok{, }\StringTok{"Model 3g"}\NormalTok{, }\StringTok{"Model Cont"}\NormalTok{), }\CommentTok{# just plug in whatever name for your outcome}
+  \DataTypeTok{mod =} \KeywordTok{c}\NormalTok{(mod2g, mod3g, mod1b) }\CommentTok{# basically just listing models that correspond to your outcomes}
+\NormalTok{)}
+
+\CommentTok{# then you use purrr}
+
+\NormalTok{mod.df.long <-}\StringTok{ }\NormalTok{mod.df }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{tab =} \KeywordTok{map}\NormalTok{(mod, table_fun)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{unnest}\NormalTok{(tab, }\DataTypeTok{.drop =}\NormalTok{ T) }
+
+\NormalTok{table.df <-}\StringTok{ }\NormalTok{mod.df.long }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{gather}\NormalTok{(}\DataTypeTok{key =}\NormalTok{ param, }\DataTypeTok{value =}\NormalTok{ value, b, CI) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{unite}\NormalTok{(param, outcome, param, }\DataTypeTok{sep =} \StringTok{"."}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{spread}\NormalTok{(}\DataTypeTok{key =}\NormalTok{ param, }\DataTypeTok{value =}\NormalTok{ value) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{type =} \KeywordTok{factor}\NormalTok{(type, }\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\StringTok{"Fixed Parts"}\NormalTok{, }\StringTok{"Random Parts"}\NormalTok{, }\StringTok{"Model Terms"}\NormalTok{))) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{arrange}\NormalTok{(type)}
+
+\CommentTok{# then you can use apa_table or kable + kableExtra to make them pretty}
+\KeywordTok{options}\NormalTok{(}\DataTypeTok{papaja.na_string =} \StringTok{" "}\NormalTok{)}
+\NormalTok{papaja}\OperatorTok{::}\KeywordTok{apa_table}\NormalTok{(table.df }\OperatorTok{%>%}\StringTok{ }\KeywordTok{select}\NormalTok{(}\OperatorTok{-}\NormalTok{type), }\DataTypeTok{caption =} \StringTok{"Multi-Model Table"}\NormalTok{,}
+          \DataTypeTok{col_spanners =} \KeywordTok{list}\NormalTok{(}\StringTok{`}\DataTypeTok{2 group}\StringTok{`}\NormalTok{ =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{2}\NormalTok{,}\DecValTok{3}\NormalTok{), }\StringTok{`}\DataTypeTok{3 group}\StringTok{`}\NormalTok{ =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{4}\NormalTok{,}\DecValTok{5}\NormalTok{), }\StringTok{`}\DataTypeTok{Continuous}\StringTok{`}\NormalTok{ =}\StringTok{ }\KeywordTok{c}\NormalTok{(}\DecValTok{6}\NormalTok{,}\DecValTok{7}\NormalTok{)),}
+          \DataTypeTok{stub_indents =} \KeywordTok{list}\NormalTok{(}\DataTypeTok{Fixed =} \KeywordTok{seq}\NormalTok{(}\DecValTok{1}\NormalTok{,}\DecValTok{8}\NormalTok{), }\DataTypeTok{Random =} \KeywordTok{seq}\NormalTok{(}\DecValTok{9}\NormalTok{,}\DecValTok{12}\NormalTok{), }\StringTok{`}\DataTypeTok{Model Terms}\StringTok{`}\NormalTok{ =}\StringTok{ }\KeywordTok{seq}\NormalTok{(}\DecValTok{13}\NormalTok{,}\DecValTok{15}\NormalTok{)),}
+          \DataTypeTok{na_string =} \StringTok{" "}\NormalTok{, }
+          \DataTypeTok{col.names =} \KeywordTok{c}\NormalTok{(}\StringTok{" "}\NormalTok{, }\KeywordTok{rep}\NormalTok{(}\KeywordTok{c}\NormalTok{(}\StringTok{"b"}\NormalTok{, }\StringTok{"CI"}\NormalTok{), }\DataTypeTok{times =} \DecValTok{3}\NormalTok{)),}
+          \DataTypeTok{align =} \KeywordTok{c}\NormalTok{(}\StringTok{"l"}\NormalTok{, }\KeywordTok{rep}\NormalTok{(}\StringTok{"c"}\NormalTok{, }\DecValTok{6}\NormalTok{)))}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{table}[tbp]
+\begin{center}
+\begin{threeparttable}
+\caption{\label{tab:unnamed-chunk-29}Multi-Model Table}
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{2}{c}{2 group} & \multicolumn{2}{c}{3 group} & \multicolumn{2}{c}{Continuous} \\
+\cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7}
+  & b & CI & b & CI & b & CI\\
+\midrule
+Fixed &  &  &  &  &  & \\
+\ \ \ (Intercept) & 2.72 & (2.68, 2.74) & 2.72 & (2.66, 2.76) & 2.73 & (2.67, 2.82)\\
+\ \ \ age0 & -0.00 & (-0.01, 0.01) & -0.00 & (-0.01, 0.00) & 0.00 & (-0.02, 0.01)\\
+\ \ \ age0:DemPweight &  &  &  &  & -0.01 & (-0.02, 0.01)\\
+\ \ \ age0:groupsCommServ &  &  & 0.01 & (-0.00, 0.03) &  & \\
+\ \ \ age0:groupsJail & -0.01 & (-0.02, 0.00) & -0.01 & (-0.02, -0.00) &  & \\
+\ \ \ DemPweight &  &  &  &  & 0.05 & (-0.06, 0.13)\\
+\ \ \ groupsCommServ &  &  & 0.04 & (-0.07, 0.09) &  & \\
+\ \ \ groupsJail & 0.09 & (0.02, 0.10) & 0.09 & (0.03, 0.16) &  & \\
+Random &  &  &  &  &  & \\
+\ \ \ $\hat{\sigma^2}$ & 0.19 & (0.18, 0.20) & 0.19 & (0.17, 0.20) & 0.19 & (0.17, 0.20)\\
+\ \ \ $\tau_{00}$ & 0.16 & (0.14, 0.19) & 0.14 & (0.10, 0.18) & 0.14 & (0.12, 0.16)\\
+\ \ \ $\tau_{10}$ & -0.31 & (1.00, 0.00) & -0.23 & (0.12, 0.15) & -0.22 & (0.19, 0.06)\\
+\ \ \ $\tau_{11}$ & 0.00 & (0.00, 0.00) & 0.00 & (0.00, 0.00) & 0.00 & (0.00, 0.00)\\
+Model Terms &  &  &  &  &  & \\
+\ \ \ $R^2_c$ & 0.45 &  & 0.44 &  & 0.44 & \\
+\ \ \ $R^2_m$ & 0.01 &  & 0.00 &  & 0.00 & \\
+\ \ \ ICC & 0.46 &  & 0.44 &  & 0.43 & \\
+\bottomrule
+\end{tabular}
+\end{threeparttable}
+\end{center}
+\end{table}
 
 \subsection{Side Note: Plotting}\label{side-note-plotting}
 
@@ -1008,7 +1076,7 @@ Random &  & \\
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-29-1.pdf}
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-30-1.pdf}
 
 \paragraph{Continuous}\label{continuous}
 
@@ -1020,13 +1088,79 @@ Random &  & \\
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-30-1.pdf}
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-31-1.pdf}
+
+\subsubsection{\texorpdfstring{Medium Advanced: Using the
+\texttt{predict()}
+function}{Medium Advanced: Using the predict() function}}\label{medium-advanced-using-the-predict-function}
+
+\paragraph{Categorical}\label{categorical-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fixed.frame <-}\StringTok{ }
+\StringTok{  }\KeywordTok{data.frame}\NormalTok{(}\KeywordTok{expand.grid}\NormalTok{(}\DataTypeTok{age0 =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{2}\NormalTok{), }
+             \DataTypeTok{groups =} \KeywordTok{c}\NormalTok{(}\StringTok{"None"}\NormalTok{,}\StringTok{"Jail"}\NormalTok{))) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{pred =} \KeywordTok{predict}\NormalTok{(mod2g, }\DataTypeTok{newdata =}\NormalTok{ ., }\DataTypeTok{re.form =} \OtherTok{NA}\NormalTok{))}
+
+\NormalTok{fixed.frame }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{age =}\NormalTok{ age0 }\OperatorTok{+}\StringTok{ }\DecValTok{14}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age, }\DataTypeTok{y =}\NormalTok{ pred, }\DataTypeTok{color =}\NormalTok{ groups)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{lims}\NormalTok{(}\DataTypeTok{y =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{4}\NormalTok{)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Age"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Sensation Seeking Composite"}\NormalTok{,}
+         \DataTypeTok{title =} \StringTok{"2 Group Time Invariant Conditional Growth Models"}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_classic}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{axis.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{legend.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{), }\DataTypeTok{hjust =}\NormalTok{ .}\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-32-1.pdf}
+
+\paragraph{Continuous}\label{continuous-1}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{fixed.frame <-}\StringTok{ }\NormalTok{sample_dat }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}\DataTypeTok{mean =} \KeywordTok{mean}\NormalTok{(DemPweight, }\DataTypeTok{na.rm =}\NormalTok{ T), }
+            \DataTypeTok{sd =} \KeywordTok{sd}\NormalTok{(DemPweight, }\DataTypeTok{na.rm =}\NormalTok{ T))}
+
+\NormalTok{fixed.frame <-}\StringTok{ }
+\StringTok{  }\KeywordTok{data.frame}\NormalTok{(}
+    \KeywordTok{expand.grid}\NormalTok{(}
+      \CommentTok{# here, you add values for your time variable and predictors}
+      \DataTypeTok{age0 =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{2}\NormalTok{), }
+      \DataTypeTok{DemPweight =} \KeywordTok{c}\NormalTok{(fixed.frame}\OperatorTok{$}\NormalTok{mean}\OperatorTok{-}\NormalTok{fixed.frame}\OperatorTok{$}\NormalTok{sd,}
+\NormalTok{                     fixed.frame}\OperatorTok{$}\NormalTok{mean,}
+\NormalTok{                     fixed.frame}\OperatorTok{$}\NormalTok{mean}\OperatorTok{+}\NormalTok{fixed.frame}\OperatorTok{$}\NormalTok{sd))) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{pred =} \KeywordTok{predict}\NormalTok{(mod1b, }\DataTypeTok{newdata =}\NormalTok{ ., }\DataTypeTok{re.form =} \OtherTok{NA}\NormalTok{))}
+
+
+\NormalTok{fixed.frame }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{Weight =} \KeywordTok{factor}\NormalTok{(DemPweight, }\DataTypeTok{levels =} \KeywordTok{unique}\NormalTok{(DemPweight), }\DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"-1SD"}\NormalTok{, }\StringTok{"0SD"}\NormalTok{, }\StringTok{"1SD"}\NormalTok{)),}
+         \DataTypeTok{age =}\NormalTok{ age0 }\OperatorTok{+}\StringTok{ }\DecValTok{14}\NormalTok{) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age, }\DataTypeTok{y =}\NormalTok{ pred, }\DataTypeTok{color =}\NormalTok{ Weight)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Age"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Sensation Seeking Composite"}\NormalTok{,}
+         \DataTypeTok{title =} \StringTok{"Continuous Invariant Conditional Growth Models"}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_classic}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{axis.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{legend.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{), }\DataTypeTok{hjust =}\NormalTok{ .}\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-33-1.pdf}
 
 \subsubsection{\texorpdfstring{More advanced: \texttt{expand.grid()} +
 \texttt{fixef()} +
 \texttt{ggplot2()}}{More advanced: expand.grid() + fixef() + ggplot2()}}\label{more-advanced-expand.grid-fixef-ggplot2}
 
-\paragraph{Categorical}\label{categorical-1}
+\paragraph{Categorical}\label{categorical-2}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1035,21 +1169,19 @@ Random &  & \\
 \StringTok{  }\KeywordTok{data.frame}\NormalTok{(}
     \KeywordTok{expand.grid}\NormalTok{(}
       \CommentTok{# here, you add values for your time variable and predictors}
+      \DataTypeTok{Intercept =} \DecValTok{1}\NormalTok{,}
       \DataTypeTok{age0 =} \KeywordTok{seq}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{10}\NormalTok{,}\DecValTok{2}\NormalTok{), }
       \DataTypeTok{groupsNone =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{))) }\OperatorTok{%>%}
 \StringTok{  }\CommentTok{# now take care of interactions and add an intercept}
-\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\StringTok{`}\DataTypeTok{age0:groupsNone}\StringTok{`}\NormalTok{ =}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{groupsNone,}
-         \DataTypeTok{Intercept =} \DecValTok{1}\NormalTok{) }\OperatorTok{%>%}
-\StringTok{  }\CommentTok{# reordering everything}
-\StringTok{  }\KeywordTok{select}\NormalTok{(Intercept, }\KeywordTok{everything}\NormalTok{())}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\StringTok{`}\DataTypeTok{age0:groupsNone}\StringTok{`}\NormalTok{ =}\StringTok{ }\NormalTok{age0}\OperatorTok{*}\NormalTok{groupsNone)}
 
 \CommentTok{# multiplying to get values for model frame}
-\NormalTok{fixed.frame}\OperatorTok{$}\NormalTok{value <-}\StringTok{ }\KeywordTok{as.vector}\NormalTok{(}\KeywordTok{as.matrix}\NormalTok{(fixed.frame) }\OperatorTok{%*%}\StringTok{ }\KeywordTok{fixef}\NormalTok{(mod2g))}
+\NormalTok{fixed.frame}\OperatorTok{$}\NormalTok{pred <-}\StringTok{ }\KeywordTok{as.vector}\NormalTok{(}\KeywordTok{as.matrix}\NormalTok{(fixed.frame) }\OperatorTok{%*%}\StringTok{ }\KeywordTok{fixef}\NormalTok{(mod2g))}
 
 \NormalTok{fixed.frame }\OperatorTok{%>%}
 \StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{groups =} \KeywordTok{factor}\NormalTok{(groupsNone, }\DataTypeTok{levels =} \KeywordTok{c}\NormalTok{(}\DecValTok{0}\NormalTok{,}\DecValTok{1}\NormalTok{), }\DataTypeTok{labels =} \KeywordTok{c}\NormalTok{(}\StringTok{"Jail"}\NormalTok{, }\StringTok{"None"}\NormalTok{)),}
          \DataTypeTok{age =}\NormalTok{ age0 }\OperatorTok{+}\StringTok{ }\DecValTok{14}\NormalTok{) }\OperatorTok{%>%}
-\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age, }\DataTypeTok{y =}\NormalTok{ value, }\DataTypeTok{color =}\NormalTok{ groups)) }\OperatorTok{+}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age, }\DataTypeTok{y =}\NormalTok{ pred, }\DataTypeTok{color =}\NormalTok{ groups)) }\OperatorTok{+}
 \StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =} \DecValTok{2}\NormalTok{) }\OperatorTok{+}\StringTok{ }
 \StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Age"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Sensation Seeking Composite"}\NormalTok{,}
          \DataTypeTok{title =} \StringTok{"2 Group Time Invariant Conditional Growth Models"}\NormalTok{) }\OperatorTok{+}
@@ -1061,14 +1193,19 @@ Random &  & \\
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-31-1.pdf}
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-34-1.pdf}
 
-\paragraph{Continuous}\label{continuous-1}
+\paragraph{Continuous}\label{continuous-2}
 
 \begin{Shaded}
 \begin{Highlighting}[]
+\KeywordTok{detach}\NormalTok{(package}\OperatorTok{:}\NormalTok{plyr)    }
+\KeywordTok{library}\NormalTok{(dplyr)}
 \CommentTok{# example for continuous}
 \NormalTok{fixed.frame <-}\StringTok{ }\NormalTok{sample_dat }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{group_by}\NormalTok{(PROC_CID) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{summarise}\NormalTok{(}\DataTypeTok{DemPweight =} \KeywordTok{mean}\NormalTok{(DemPweight, }\DataTypeTok{na.rm =}\NormalTok{ T)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ungroup}\NormalTok{() }\OperatorTok{%>%}
 \StringTok{  }\KeywordTok{summarise}\NormalTok{(}\DataTypeTok{mean =} \KeywordTok{mean}\NormalTok{(DemPweight, }\DataTypeTok{na.rm =}\NormalTok{ T), }
             \DataTypeTok{sd =} \KeywordTok{sd}\NormalTok{(DemPweight, }\DataTypeTok{na.rm =}\NormalTok{ T))}
 
@@ -1104,9 +1241,51 @@ Random &  & \\
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-32-1.pdf}
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-35-1.pdf}
 
 \normalsize  
+
+\subsubsection{Random Effects}\label{random-effects}
+
+\paragraph{Categorical}\label{categorical-3}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{tbl_df}\NormalTok{(mod3g}\OperatorTok{@}\NormalTok{frame) }\OperatorTok{%>%}\StringTok{ }\KeywordTok{select}\NormalTok{(PROC_CID, age0, groups) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{pred =} \KeywordTok{predict}\NormalTok{(mod3g, }\DataTypeTok{newdata =}\NormalTok{ .)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age0, }\DataTypeTok{y =}\NormalTok{ pred, }\DataTypeTok{group =}\NormalTok{ PROC_CID, }\DataTypeTok{color =}\NormalTok{ groups)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =}\NormalTok{ .}\DecValTok{5}\NormalTok{, }\DataTypeTok{alpha =}\NormalTok{ .}\DecValTok{5}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Age"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Predicted Sensation Seeking"}\NormalTok{, }
+         \DataTypeTok{title =} \StringTok{"Predicted Random Effect Trajectories}\CharTok{\textbackslash{}n}\StringTok{for the 3 Group Model"}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_classic}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{axis.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{legend.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{), }\DataTypeTok{hjust =}\NormalTok{ .}\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-36-1.pdf}
+
+\paragraph{Categorical}\label{categorical-4}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{mod1b}\OperatorTok{@}\NormalTok{frame }\OperatorTok{%>%}\StringTok{ }\KeywordTok{select}\NormalTok{(}\OperatorTok{-}\NormalTok{SensSeek) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{mutate}\NormalTok{(}\DataTypeTok{pred =} \KeywordTok{predict}\NormalTok{(mod1b)) }\OperatorTok{%>%}
+\StringTok{  }\KeywordTok{ggplot}\NormalTok{(}\KeywordTok{aes}\NormalTok{(}\DataTypeTok{x =}\NormalTok{ age0, }\DataTypeTok{y =}\NormalTok{ pred, }\DataTypeTok{group =}\NormalTok{ PROC_CID, }\DataTypeTok{color =}\NormalTok{ DemPweight)) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{geom_line}\NormalTok{(}\DataTypeTok{size =}\NormalTok{ .}\DecValTok{5}\NormalTok{, }\DataTypeTok{alpha =}\NormalTok{ .}\DecValTok{5}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{labs}\NormalTok{(}\DataTypeTok{x =} \StringTok{"Age"}\NormalTok{, }\DataTypeTok{y =} \StringTok{"Predicted Sensation Seeking"}\NormalTok{, }
+         \DataTypeTok{title =} \StringTok{"Predicted Random Effect Trajectories}\CharTok{\textbackslash{}n}\StringTok{for the 3 Group Model"}\NormalTok{) }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme_classic}\NormalTok{() }\OperatorTok{+}
+\StringTok{    }\KeywordTok{theme}\NormalTok{(}\DataTypeTok{axis.text =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{axis.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{legend.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{)),}
+          \DataTypeTok{plot.title =} \KeywordTok{element_text}\NormalTok{(}\DataTypeTok{face =} \StringTok{"bold"}\NormalTok{, }\DataTypeTok{size =} \KeywordTok{rel}\NormalTok{(}\FloatTok{1.2}\NormalTok{), }\DataTypeTok{hjust =}\NormalTok{ .}\DecValTok{5}\NormalTok{))}
+\end{Highlighting}
+\end{Shaded}
+
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-37-1.pdf}
 
 \subsection{\texorpdfstring{Side Note: Comparisons with
 \texttt{lsmeans}}{Side Note: Comparisons with lsmeans}}\label{side-note-comparisons-with-lsmeans}
@@ -1186,7 +1365,7 @@ listed below. Then I'll demonstrate them in turn.\\
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-37-1.pdf}
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-42-1.pdf}
 
 \begin{Shaded}
 \begin{Highlighting}[]
@@ -1242,7 +1421,7 @@ How does this look?
   \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*time + \beta_{2j}*CESD + \varepsilon{ij}$
   \item \textbf{Level 2:} 
     \begin{itemize} 
-      \item $\beta_{0j} = \gamma_{00} + \gamma_{01} + U_{0j}$
+      \item $\beta_{0j} = \gamma_{00} + U_{0j}$
       \item $\beta_{1j} = \gamma_{10} + U_{1j}$
       \item $\beta_{2j} = \gamma_{20}$
     \end{itemize}
@@ -1255,7 +1434,7 @@ Question}\label{to-interaction-or-not---that-is-the-question}
   \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*age0 + \beta_{2j}*CESD + \varepsilon{ij}$
   \item \textbf{Level 2:} 
     \begin{itemize} 
-      \item $\beta_{0j} = \gamma_{00} + \gamma_{01} + U_{0j}$
+      \item $\beta_{0j} = \gamma_{00} + U_{0j}$
       \item $\beta_{1j} = \gamma_{10} + U_{1j}$
       \item $\beta_{2j} = \gamma_{20}$
     \end{itemize}
@@ -1355,7 +1534,7 @@ time?}\label{example-does-depression-influence-changes-in-sensation-seeking-over
 \end{Highlighting}
 \end{Shaded}
 
-\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-42-1.pdf}
+\includegraphics{Conditional_Models_doc_files/figure-latex/unnamed-chunk-47-1.pdf}
 
 \subsection{Time Varying Predictors:
 Categorical}\label{time-varying-predictors-categorical}
