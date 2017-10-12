@@ -1,0 +1,332 @@
+---
+title: "Assignment 3"
+author: "Emorie D Beck"
+date: "10/11/2017"
+output: 
+  html_document:
+    toc: yes
+    toc_float: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Workspace
+##Packages
+```{r, results = 'hide', message = F, warning = F}
+library(psych)
+library(sjPlot)
+library(broom)
+library(lme4)
+library(MuMIn)
+library(merTools)
+library(reghelper)
+library(stargazer)
+library(lsmeans)
+library(multcompView)
+library(plyr)
+library(tidyverse)
+```
+
+
+# Background
+## Basic Syntex
+From last week:
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \varepsilon{ij}$
+  \item \textbf{Level 2:} $\beta_{0j} = \gamma_{00} + U_{0j}$
+\end{itemize}
+
+## Sample Data
+The National Longitudinal Study of Youths 1979 Child and Young Adult Sample (NLSYCYA) is a longitudinal study conducted by the National Bureau of Labor Statistics. The sample includes the children of the original 1979 sample. Here, we are going to use a subset of the more than 11,000 variables available that include the following.
+
+Item Name   | Description                   | Time-Varying?
+----------- | ----------------------------- | -------------
+PROC_CID    | Participant ID                | No  
+Dem_DOB     | Year of Date of Birth         | No
+groups      | Jail, Community Service, None | No
+DemPWeight  | Weight Percentile at age 10   | No
+age         | Age of participant            | Yes
+Year        | Year of Survey                | Yes
+age0        | Age of participant (centered) | Yes
+SensSeek    | Sensation-Seeking Composite   | Yes
+CESD        | CESD Depression Composite     | Yes
+
+```{r, eval = T, tidy = T}
+data_path <- "https://github.com/longitudinal-data/1-descriptives-and-graphs-emoriebeck/raw/master/Conditional_Models"
+load(url(paste(data_path, "sample.RData", sep = "/")))
+
+head(sample_dat)
+```
+
+# Time Invariant Predictors
+## Time Invariant Predictors: Continuous
+
+The basic equation, specifying a random intercept and slope:    
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*time_{1j} + \varepsilon{ij}$
+  \item \textbf{Level 2:} 
+    \begin{itemize} 
+      \item $\beta_{0j} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j}$
+      \item $\beta_{1j} = \gamma_{10} + \gamma_{11}*X_{2j} + U_{1j}$
+    \end{itemize}
+\end{itemize}
+
+But we need to break this down to see that adding additional predictors results in interaction terms:  
+
+$Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j} + (\gamma_{10} + \gamma_{11}*X_{2j} + U_{1j})*X_{1j} + \varepsilon{ij}$
+$Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + \gamma_{10}*X_{1j} + \textcolor{red}{\gamma_{11}*X_{2j}*X_{1j}} + U_{0j} + U_{1j}*X_{1j} + \varepsilon{ij}$
+
+We can also fit this with intercepts depending on weight, but without the change (slope) dependent on weight:  
+$Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j} + (\gamma_{10} + U_{1j})*X_{1j} + \varepsilon{ij}$
+$Y_{ij} = \gamma_{00} + \gamma_{01}*X_{2j} + \gamma_{10}*X_{1j} + U_{0j} + U_{1j}*X_{1j} + \varepsilon{ij}$
+
+### Continuous Example - Weight for Age Percentile  
+
+\small
+```{r}
+describe(sample_dat$DemPweight)
+```
+
+\small
+```{r,results='hide'}
+# time invariant covariate with random intecept (with weight as covariate) 
+# and slope (without weight as a covariate)
+mod1a <- lmer(SensSeek ~ age0 + DemPweight + (age0|PROC_CID), 
+              data = sample_dat)
+
+summary(mod1a)
+
+# time invariant predictor with random slope and intercept
+mod1b <- lmer(SensSeek ~ age0 + DemPweight + age0*DemPweight + 
+                (age0|PROC_CID), data = sample_dat)
+
+summary(mod1b)
+```
+
+```{r}
+fixed.frame <- sample_dat %>%
+  summarise(mean = mean(DemPweight, na.rm = T), 
+            sd = sd(DemPweight, na.rm = T))
+
+fixed.frame <- 
+  data.frame(
+    expand.grid(
+      # here, you add values for your time variable and predictors
+      age0 = seq(0,10,2), 
+      DemPweight = c(fixed.frame$mean-fixed.frame$sd,
+                     fixed.frame$mean,
+                     fixed.frame$mean+fixed.frame$sd))) %>%
+  mutate(pred = predict(mod1b, newdata = ., re.form = NA))
+
+
+fixed.frame %>%
+  mutate(Weight = factor(DemPweight, levels = unique(DemPweight), labels = c("-1SD", "0SD", "1SD")),
+         age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = Weight)) +
+    geom_line(size = 2) + 
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "Continuous Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+\normalsize
+
+
+
+##Time Invariant Predictors: Categorical 
+### Categorical Example - 2 level group
+
+Let's start with the basic syntax:  
+
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*time_{1j} + \varepsilon{ij}$
+  \item \textbf{Level 2:} 
+    \begin{itemize} 
+      \item $\beta_{0j} = \gamma_{00} + \gamma_{01}*X_{2j} + U_{0j}$
+      \item $\beta_{1j} = \gamma_{10} + \gamma_{11}*X_{2j} + U_{1j}$
+    \end{itemize}
+\end{itemize}
+
+Now let's swap that out for a 2 group sample from the present data:  
+
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*age0_{ij} + \varepsilon{ij}$
+  \item \textbf{Level 2:} 
+    \begin{itemize} 
+      \item $\beta_{0j} = \gamma_{00} + \gamma_{01}*groupsNone + U_{0j}$
+      \item $\beta_{1j} = \gamma_{10} + \gamma_{11}*groupsNone + U_{1j}$
+    \end{itemize}
+\end{itemize}
+
+Variable  | D1  
+--------- | ---
+Jail      | 0 
+None      | 1
+
+
+And model it:  
+\small
+```{r}
+mod2ga <- lmer(SensSeek ~ age0 + groups + (age0|PROC_CID), 
+              data = sample_dat %>% filter(groups != "CommServ"))
+mod2g <- lmer(SensSeek ~ age0 + groups + age0*groups + (age0|PROC_CID), 
+              data = sample_dat %>% filter(groups != "CommServ"))
+summary(mod2g)
+```
+
+\normalsize
+
+```{r}
+fixed.frame <- 
+  data.frame(expand.grid(age0 = seq(0,10,2), 
+             groups = c("None","Jail"))) %>%
+  mutate(pred = predict(mod2g, newdata = ., re.form = NA))
+
+fixed.frame %>%
+  mutate(age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = groups)) +
+    geom_line(size = 2) + 
+    lims(y = c(0,4)) +
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "2 Group Time Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+
+```
+
+##Both Continuous and Categorical
+```{r}
+mod3 <- lmer(SensSeek ~ age0*groups + age0*DemPweight + (age0|PROC_CID), data = sample_dat)
+```
+
+
+# Time Varying Predictors
+
+## Time Varying Predictors: Continuous
+Next, we'll add in a time-varying predictor. Maybe it's not that our participants sensation seeking is moderated by early life experiences of jail or court-ordered community service. Instead, their sensation seeking is moderated by depression.  
+How does this look?
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*time + \beta_{2j}*CESD + \varepsilon{ij}$
+  \item \textbf{Level 2:} 
+    \begin{itemize} 
+      \item $\beta_{0j} = \gamma_{00} + U_{0j}$
+      \item $\beta_{1j} = \gamma_{10} + U_{1j}$
+      \item $\beta_{2j} = \gamma_{20}$
+    \end{itemize}
+\end{itemize}
+
+###To Interaction or Not - That Is the Question
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*age0 + \beta_{2j}*CESD + \varepsilon{ij}$
+  \item \textbf{Level 2:} 
+    \begin{itemize} 
+      \item $\beta_{0j} = \gamma_{00} + U_{0j}$
+      \item $\beta_{1j} = \gamma_{10} + U_{1j}$
+      \item $\beta_{2j} = \gamma_{20}$
+    \end{itemize}
+\end{itemize}
+$$Y_{ij} =  \gamma_{00} + \gamma_{01} + U_{0j} + (\gamma_{10} + U_{1j})*age0 + \gamma_{20}*CESD$$
+
+### Example: Does depression influence changes in sensation seeking over time?
+
+\small
+```{r, results = 'hide'}
+modTV1 <- lmer(SensSeek ~ age0 + CESD + (age0|PROC_CID), data = sample_dat)
+```
+
+\small
+```{r, echo = T}
+summary(modTV1)
+```
+
+\normalsize
+
+```{r, echo = T, eval = T}
+# example for continuous
+# note MEANS ARE AT AGE0 = 0
+fixed.frame <- sample_dat %>%
+  filter(age0 == 0) %>%
+  summarise(mean = mean(CESD, na.rm = T), 
+            sd = sd(CESD, na.rm = T))
+
+fixed.frame <- 
+  data.frame(
+    expand.grid(
+      # here, you add values for your time variable and predictors
+      age0 = seq(0,10,2), 
+      CESD = c(fixed.frame$mean-fixed.frame$sd,
+                     fixed.frame$mean,
+                     fixed.frame$mean+fixed.frame$sd))) %>%
+  mutate(pred = predict(modTV1, newdata = ., re.form = NA))
+
+fixed.frame %>%
+  mutate(CESD = factor(CESD, levels = unique(CESD), labels = c("-1SD", "0SD", "1SD")),
+         age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = CESD)) +
+    geom_line(size = 2) + 
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "Continuous Time Varying Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+
+```
+
+## Time Varying Predictors: Categorical
+Next, we'll add in a time-varying predictor. Maybe it's not that our participants sensation seeking is moderated by early life experiences of jail or court-ordered community service. Instead, their sensation seeking is moderated by depression.  
+How does this look?
+\begin{itemize}
+  \item \textbf{Level 1:} $Y_{ij} = \beta_{0j} + \beta_{1j}*time + \beta_{2j}*depressed + \varepsilon{ij}$
+  \item \textbf{Level 2:} 
+    \begin{itemize} 
+      \item $\beta_{0j} = \gamma_{00} + \gamma_{01} + U_{0j}$
+      \item $\beta_{1j} = \gamma_{10} + U_{1j}$
+      \item $\beta_{2j} = \gamma_{20}$
+    \end{itemize}
+\end{itemize}
+
+\small
+```{r}
+# creating a dummy variable for time varying categorical depression
+sample_dat <- sample_dat %>%
+  mutate(depressed = 
+           factor(ifelse(CESD <= 1.5, 0, 1), levels = c(0,1), 
+                  labels = c("Depressed", "Not Depressed")))
+modTV2 <- lmer(SensSeek ~ age0 + depressed + (age0|PROC_CID), 
+               data = sample_dat)
+summary(modTV2)
+```
+
+```{r}
+fixed.frame <- 
+  data.frame(expand.grid(age0 = seq(0,10,2), 
+             depressed = c("Depressed","Not Depressed"))) %>%
+  mutate(pred = predict(modTV2, newdata = ., re.form = NA))
+
+fixed.frame %>%
+  mutate(age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = depressed)) +
+    geom_line(size = 2) + 
+    lims(y = c(0,4)) +
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "2 Group Time Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+
+\normalsize

@@ -820,16 +820,10 @@ fixed.frame <-
     expand.grid(
       # here, you add values for your time variable and predictors
       age0 = seq(0,10,2), 
-      CESD = c(fixed.frame$mean-fixed.frame$sd,
+      DemPweight = c(fixed.frame$mean-fixed.frame$sd,
                      fixed.frame$mean,
                      fixed.frame$mean+fixed.frame$sd))) %>%
-  # now take care of interactions and add an intercept
-  mutate(Intercept = 1) %>%
-  # reordering everything
-  select(Intercept, everything())
-
-# multiplying to get values for model frame
-fixed.frame$value <- as.matrix(fixed.frame) %*% as.vector(fixef(modTV1))
+  mutate(pred = predict(modTV1, newdata = ., re.form = NA))
 
 fixed.frame %>%
   mutate(CESD = factor(CESD, levels = unique(CESD), labels = c("-1SD", "0SD", "1SD")),
@@ -869,6 +863,26 @@ sample_dat <- sample_dat %>%
 modTV2 <- lmer(SensSeek ~ age0 + depressed + (age0|PROC_CID), 
                data = sample_dat)
 summary(modTV2)
+```
+
+```{r}
+fixed.frame <- 
+  data.frame(expand.grid(age0 = seq(0,10,2), 
+             depressed = c("Depressed","Not Depressed"))) %>%
+  mutate(pred = predict(modTV2, newdata = ., re.form = NA))
+
+fixed.frame %>%
+  mutate(age = age0 + 14) %>%
+  ggplot(aes(x = age, y = pred, color = depressed)) +
+    geom_line(size = 2) + 
+    lims(y = c(0,4)) +
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "Nominal Time Varying Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
 ```
 
 
