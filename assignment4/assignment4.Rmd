@@ -1,0 +1,28 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+# Intensive Longitudinal Data  
+How do we separate between and within person processes? Centering  
+2 main types of centering:  
+
+- grand mean centering  
+      * Grand mean centering level 2 variables makes the intercept interpreted at the average level of whatever variables you have.  
+- group centering / person centering  
+      * this unconfounds between and within-person effects. Makes everyone's mean 0. 
+- person-level averages
+
+
+```{r}
+data_path <- "~/Dropbox (Brown)/Fall 2017/Longitudinal Data Analysis/1-descriptives-and-graphs-emoriebeck/assignment4"
+load(sprintf("%s/pairsforjosh.RData"))
+```
+
+If you take the average level (uncentered) for each person and add it to level 2, then we can control for between-within relationships (e.g. how between person differences may moderate within-person differences)
+
+Level 1: $Y_{ij} = \beta_{0j} + \beta_{1j}*t + \beta_{2j}*WP\_cent$
+Level 2: 
+- $\beta_{0j} = \gamma_{00} + \gamma_{01}*P\_ave + \upsilon_{00}$
+- $\beta_{1j} = \gamma_{10} + \gamma_{11}*P\_ave + \upsilon_{10}$
+- $\beta_{2j} = \gamma_{20} + \gamma_{21}*P\_ave + \upsilon_{20}$

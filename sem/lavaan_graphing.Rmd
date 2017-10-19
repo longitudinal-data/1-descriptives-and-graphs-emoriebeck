@@ -1,0 +1,153 @@
+---
+title: "Plotting with Lavaan"
+author: "Emorie Beck"
+date: "10/19/2017"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Plotting with Lavaan
+
+```{r}
+library(lavaan)
+library(psych)
+library(tidyverse)
+library(semPlot)
+
+data_path <- "https://github.com/longitudinal-data/1-descriptives-and-graphs-emoriebeck/raw/master/Conditional_Models"
+load(url(paste(data_path, "sample.RData", sep = "/")))
+
+sample_dat_wide <- sample_dat %>%
+  select(-year, -age, -CESD) %>%
+  mutate(age0 = paste("A", age0, sep = ".")) %>%
+  spread(key = age0, value = SensSeek)
+```
+
+## Create Model and Run
+###Continuous
+```{r}
+## linear growth model with a time-varying covariate
+model.syntax <- '
+  # intercept and slope with fixed coefficients
+    i =~ 1*A.0 + 1*A.2 + 1*A.4 + 1*A.6 + 1*A.8 + 1*A.10 
+    s =~ 0*A.0 + 1*A.2 + 2*A.4 + 3*A.6 + 4*A.8 + 5*A.10
+
+  # regressions
+    i ~ DemPweight
+    s ~ DemPweight
+'
+
+fit <- growth(model.syntax, data=sample_dat_wide, missing = "FIML")
+summary(fit)
+
+semPaths(fit, "hide")
+
+get_fixef <- function(fit, target.var){
+    df <- parameterestimates(fit) %>% 
+      filter(lhs != rhs & lhs %in% target.var & op %in% c("~", "~1")) %>%
+      unite(term, lhs, op, rhs, sep = "")
+    v <- as.vector(df$est)  
+    names(v) <- df$term
+    return(v)
+  }
+
+# example for continuous
+fixed.frame <- sample_dat %>%
+  group_by(PROC_CID) %>%
+  summarise(DemPweight = mean(DemPweight, na.rm = T)) %>%
+  ungroup() %>%
+  summarise(mean = mean(DemPweight, na.rm = T), 
+            sd = sd(DemPweight, na.rm = T))
+
+fixed.frame <- 
+  data.frame(
+    expand.grid(
+      # here, you add values for your time variable and predictors
+      age0 = seq(0,10,2), 
+      DemPweight = c(fixed.frame$mean-fixed.frame$sd,
+                     fixed.frame$mean,
+                     fixed.frame$mean+fixed.frame$sd))) %>%
+  # now take care of interactions and add an intercept
+  mutate(`age0:DemPweight` = age0*DemPweight,
+         Intercept = 1) %>%
+  # reordering everything
+  select(DemPweight, `age0:DemPweight`, Intercept, age0)
+
+fixed.frame$y <- as.vector(as.matrix(fixed.frame) %*% get_fixef(fit, c("i", "s")))
+
+tbl_df(fixed.frame) %>%
+  mutate(Weight = factor(DemPweight, levels = unique(DemPweight), labels = c("-1SD", "0SD", "1SD")),
+         age = age0 + 14) %>%
+  ggplot(aes(x = age, y = y, color = Weight)) +
+    geom_line(size = 2) + 
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "Continuous Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
+
+
+### Categorical
+```{r}
+## linear growth model with a time-varying covariate
+model.syntax <- '
+  # intercept and slope with fixed coefficients
+    i =~ 1*A.0 + 1*A.2 + 1*A.4 + 1*A.6 + 1*A.8 + 1*A.10 
+    s =~ 0*A.0 + 1*A.2 + 2*A.4 + 3*A.6 + 4*A.8 + 5*A.10
+
+  # regressions
+    i ~ groups
+    s ~ groups
+'
+
+
+
+fit <- growth(model.syntax, data=sample_dat_wide %>% filter(groups != "CommServ"), missing = "FIML")
+summary(fit)
+
+semPaths(fit)
+
+get_fixef <- function(fit, target.var){
+    df <- parameterestimates(fit) %>% 
+      filter(lhs != rhs & lhs %in% target.var & op %in% c("~", "~1")) %>%
+      unite(term, lhs, op, rhs, sep = "")
+    v <- as.vector(df$est)  
+    names(v) <- df$term
+    return(v)
+  }
+
+# example for categorical
+fixed.frame <- 
+  data.frame(
+    expand.grid(
+      # here, you add values for your time variable and predictors
+      Intercept = 1,
+      age0 = seq(0,10,2), 
+      groupsNone = c(0,1))) %>%
+  # now take care of interactions and add an intercept
+  mutate(`age0:groupsNone` = age0*groupsNone) %>%
+  select(groupsNone, `age0:groupsNone`, Intercept, age0)
+
+fixed.frame$y <- as.vector(as.matrix(fixed.frame) %*% get_fixef(fit, c("i", "s")))
+
+fixed.frame %>%
+  mutate(groups = factor(groupsNone, levels = c(0,1), labels = c("Jail", "None")),
+         age = age0 + 14) %>%
+  ggplot(aes(x = age, y = y, color = groups)) +
+    geom_line(size = 2) + 
+    labs(x = "Age", y = "Sensation Seeking Composite",
+         title = "2 Group Time Invariant Conditional Growth Models") +
+    theme_classic() +
+    theme(axis.text = element_text(face = "bold", size = rel(1.2)),
+          axis.title = element_text(face = "bold", size = rel(1.2)),
+          legend.title = element_text(face = "bold", size = rel(1.2)),
+          plot.title = element_text(face = "bold", size = rel(1.2), hjust = .5))
+```
