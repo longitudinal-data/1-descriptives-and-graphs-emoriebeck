@@ -1,0 +1,416 @@
+---
+title: "Untitled"
+author: "Emorie D Beck"
+date: "11/2/2017"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning = F, message = F)
+```
+
+#Workspace
+##Packages
+\footnotesize
+```{r}
+library(survey)
+library(mi)
+library(mitools)
+library(psych)
+library(googlesheets)
+library(MatchIt)
+library(lavaan)
+library(semTools)
+library(blavaan)
+library(MuMIn)
+library(gridExtra)
+library(knitr)
+library(kableExtra)
+library(mitml)
+library(stargazer)
+library(plyr)
+library(stringr)
+library(haven)
+library(tidyverse)
+
+data_path <- "~/Box Sync/network/other projects/PCLE Replication"
+load(sprintf("%s/results/data.RData", data_path))
+```
+
+##Define Functions
+```{r}
+table_fun <- function(mod, target.var){
+  df <- parameterestimates(mod) %>% 
+      filter(lhs %in% target.var & op %in% c("~", "~1", "~~")) %>%
+      unite(term, lhs, op, rhs, sep = "") %>%
+      select(term, est, ci.lower, ci.upper) %>%
+      mutate(type = ifelse(grepl("~~", term) == T, "random", "fixed")) %>%
+      mutate(CI = sprintf("(%.2f, %.2f)", ci.lower, ci.upper),
+             est = sprintf("%.2f", est)) %>%
+     select(-ci.lower, -ci.upper) %>%
+     gather(key = est, value = value, est, CI)
+  
+  
+  fitmeas <- data.frame(fitmeasures(mod)) %>% 
+    mutate(term = rownames(.), type = "fitmeas",) %>% 
+    dplyr::rename(value = fitmeasures.mod.) %>%
+    mutate(value = sprintf("%.2f", value)) %>%
+    filter(term %in% c("cfi", "rmsea", "chisq", "df"))
+  
+  df <- df %>% full_join(fitmeas)
+}
+```
+
+
+#Question 1:
+Fit a measurement model to your constructs at one time point. Try out the different types of scaling discussed in class. What changes what stays the same?
+
+```{r}
+T1.mod <- '
+  E.T1 =~ E.T1_1 + E.T1_2 + E.T1_3
+  A.T1 =~ A.T1_1 + A.T1_2 + A.T1_3
+  C.T1 =~ C.T1_1 + C.T1_2 + C.T1_3
+  N.T1 =~ N.T1_1 + N.T1_2 + N.T1_3
+  O.T1 =~ O.T1_1 + O.T1_2 + O.T1_3
+'
+
+T1.ec.mod <- '
+  E.T1 =~ NA*E.T1_1 + e1*E.T1_1 + e2*E.T1_2 + e3*E.T1_3
+  A.T1 =~ NA*A.T1_1 + a1*A.T1_1 + a2*A.T1_2 + a3*A.T1_3
+  C.T1 =~ NA*C.T1_1 + c1*C.T1_1 + c2*C.T1_2 + c3*C.T1_3
+  N.T1 =~ NA*N.T1_1 + n1*N.T1_1 + n2*N.T1_2 + n3*N.T1_3
+  O.T1 =~ NA*O.T1_1 + o1*O.T1_1 + o2*O.T1_2 + o3*O.T1_3
+
+  #model constraints for effect coding
+  ## loadings must average to 1
+  e1 == 3 - e2 - e3
+  a1 == 3 - a2 - a3
+  c1 == 3 - c2 - c3
+  n1 == 3 - n2 - n3
+  o1 == 3 - o2 - o3
+'
+
+mi_fun <- function(df, scale){
+  if(scale == "marker"){
+    cfa(T1.mod, data=df, missing ="FIML")
+  } else if(scale == "fixed"){
+    cfa(T1.mod, data=df, missing ="FIML", std.lv=TRUE)
+  } else{
+    cfa(T1.ec.mod, data=df, missing ="FIML")
+  }
+}
+
+mm_dat <- bfi_wide %>% 
+  gather(key = item, value = value, T1_1:T3_3) %>%
+  unite(item, Trait, item, sep = ".") %>%
+  spread(key = item, value = value) %>%
+  nest() %>%
+  mutate(mi.t1.marker = map(data, ~mi_fun(., "marker")),
+         mi.t1.fixed  = map(data, ~mi_fun(., "fixed")),
+         mi.t1.effect = map(data, ~mi_fun(., "effect")))
+```
+
+# Question 2
+What do the fit statistics say about your latent variable? Good/bad? Is your latent variable Just identified/saturdated, under identified or over identified?
+```{r, results = 'asis'}
+fitmeas_fun <- function(fit){
+  data.frame(fitmeasures(fit)) %>% 
+    mutate(term = rownames(.), type = "fitmeas") %>% 
+    dplyr::rename(est = fitmeasures.fit.) %>%
+    filter(term %in% c("cfi", "rmsea", "chisq", "df"))
+}
+
+mm_dat <- mm_dat %>%
+  mutate(fitmeas.t1.marker = map(mi.t1.marker, fitmeas_fun),
+         fitmeas.t1.fixed  = map(mi.t1.fixed,  fitmeas_fun),
+         fitmeas.t1.effect = map(mi.t1.effect, fitmeas_fun))
+
+options(knitr.kable.NA = '')
+kable(mm_dat %>%  unnest(fitmeas.t1.marker) %>% mutate(model = "marker") %>%
+  full_join(mm_dat %>% unnest(fitmeas.t1.fixed) %>% mutate(model = "fixed")) %>%
+  full_join(mm_dat %>% unnest(fitmeas.t1.effect) %>% mutate(model = "effect")) %>%
+  spread(key = model, value = est), 
+  "latex", digits = 2, booktabs = T, escape = F) %>%
+  kable_styling(latex_options = c("repeat_header"),full_width = F) 
+  
+```
+
+#Question 3:
+Fit a longitudinal CFA model where you a) first correlate your latent factors across time and then b) a second model that predicts later times by a prevous time (ie auto regressive; t1 -> t2 -> t3). What are your conclusions? How does one differ from the other?
+```{r}
+mi.mod <- '
+  T1 =~ T1_1 + T1_2 + T1_3 
+  T2 =~ T2_1 + T2_2 + T2_3 
+  T3 =~ T3_1 + T3_2 + T3_3 
+'
+
+cor.mod <- '
+  T1 ~~ T2
+  T2 ~~ T3
+  T1 ~~ T3
+'
+
+ar.mod <- '
+  T2 ~ T1
+  T3 ~ T2
+'
+
+constrainedVar <- list(
+  paste("T1",1:3, sep = "_"),
+  paste("T2",1:3, sep = "_"),
+  paste("T3",1:3, sep = "_")
+)
+
+mi.cor.mod <- paste(mi.mod, cor.mod, sep = "\n\n")
+mi.ar.mod  <- paste(mi.mod, ar.mod,  sep = "\n\n")
+
+mi.long_fun <- function(df, model){
+  longInvariance(model, auto=1, constrainAuto=TRUE, 
+                 varList=constrainedVar, data=df, missing ="FIML")
+}
+
+mm.long_fun <- function(df, model){
+  cfa(model, data = df, missing = "FIML")
+}
+
+mi_nested <- bfi_wide %>%
+  group_by(Trait) %>%
+  nest() %>%
+  mutate(long.mi.cor = map(data, ~mm.long_fun(., mi.cor.mod)),
+         long.mi.ar  = map(data, ~mm.long_fun(., mi.ar.mod)))
+```
+
+# Question 4
+Fit a longitdinal growth model in SEM and in HLM. Compare and contrast the differences.
+```{r, results = 'asis'}
+base.growth.mod <- '
+T1 =~ NA*T1_1 + (lambda1)*T1_1 + (lambda2)*T1_2 + (lambda3)*T1_3 
+T2 =~ NA*T2_1 + (lambda1)*T2_1 + (lambda2)*T2_2 + (lambda3)*T2_3 
+T3 =~ NA*T3_1 + (lambda1)*T3_1 + (lambda2)*T3_2 + (lambda3)*T3_3 
+
+
+###intercepts
+T1_1 ~ (nu1)*1
+T1_2 ~ (nu2)*1
+T1_3 ~ (nu3)*1
+T2_1 ~ (nu1)*1
+T2_2 ~ (nu2)*1
+T2_3 ~ (nu3)*1
+T3_1 ~ (nu1)*1
+T3_2 ~ (nu2)*1
+T3_3 ~ (nu3)*1
+
+# T1_1 ~ 1
+# T1_2 ~ 1
+# T1_3 ~ 1
+# T2_1 ~ 1
+# T2_2 ~ 1
+# T2_3 ~ 1
+# T3_1 ~ 1
+# T3_2 ~ 1
+# T3_3 ~ 1
+
+####variances/covariances
+# item 1
+T1_1 ~~ T2_1
+T1_1 ~~ T3_1
+T2_1 ~~ T3_1
+
+# item 2
+T1_2 ~~ T2_2
+T1_2 ~~ T3_2
+T2_2 ~~ T3_2
+
+# item 3
+T1_3 ~~ T2_3
+T1_3 ~~ T3_3
+T2_3 ~~ T3_3
+
+# I ~~ I
+# S ~~ S
+# I ~~ S
+# I ~ 1
+# S ~ 1
+# T1 ~ 0*1
+# T2 ~ 0*1
+# T3 ~ 0*1
+
+#model constraints
+lambda1 == 3 - lambda2 - lambda3 
+(nu1) == 0 - (nu2) - (nu3)
+
+'
+
+def.latent <- '
+  I =~ 1*T1 + 1*T2 + 1*T3
+  S =~ 0*T1 + 1*T2 + 2*T3
+'
+
+growth.mod <- paste(base.growth.mod, def.latent, sep = "\n\n")
+
+growth_fun <- function(df, model){
+  growth(model, data = df, missing = "FIML")
+}
+
+lmer_fun <- function(df){
+  df <- df %>%
+    gather(key = item, value = value, T1_1:T3_3) %>%
+    separate(item, c("wave", "item"), sep = "_") %>%
+    mutate(wave = as.numeric(str_replace(wave, "T", ""))) %>%
+    group_by(wave, PROC_SID) %>%
+    summarize(composite = mean(value, na.rm = T))
+  lme4::lmer(composite ~ wave + (wave | PROC_SID), data = df)
+}
+
+mi_nested <- mi_nested %>% 
+  mutate(sem.growth = map(data, ~growth_fun(., growth.mod)),
+         mlm.growth = map(data, lmer_fun),
+         table.sem = map(sem.growth, ~table_fun(., c("I", "S"))))
+
+
+mi_nested %>%
+  unnest(table) %>%
+  mutate(est = mapvalues(est, c("est", "CI"), c("b", "CI")),
+         type = factor(type, levels = c("fixed", "random", "fitmeas"))) %>%
+  #unite(Trait, Trait, est, sep = ".") %>%
+  spread(key = Trait, value = value) %>%
+  arrange(type) %>%
+  kable(., "latex", booktabs = T, escape = F) %>%
+  kable_styling(latex_options = c("repeat_header"),full_width = F) %>%
+  group_rows("Fixed", 1,4) %>%
+  #group_rows("Intercept", 1,2) %>%
+  group_rows("Random", 5,10) %>%
+  group_rows("Model", 11,14)
+```
+
+
+# Question 5
+Constrain the residual variances to be equal. Does this change the fit of your model?
+```{r, results = 'asis'}
+resid.var <- '
+  # equality of residuals 
+  T1 ~~ u*T1
+  T2 ~~ u*T2
+  T3 ~~ u*T3
+'
+
+resid.growth.mod <- paste(growth.mod, resid.var, sep = "\n\n")
+
+mi_nested <- mi_nested %>% 
+  mutate(sem.growth.resid = map(data, ~growth_fun(., resid.growth.mod)),
+         table.resid = map(sem.growth, ~table_fun(., c("I", "S"))))
+         
+mi_nested %>%
+  unnest(table) %>%
+  mutate(est = mapvalues(est, c("est", "CI"), c("b", "CI")),
+         type = factor(type, levels = c("fixed", "random", "fitmeas"))) %>%
+  #unite(Trait, Trait, est, sep = ".") %>%
+  spread(key = Trait, value = value) %>%
+  arrange(type)  %>%
+  kable(., "latex", booktabs = T, escape = F) %>%
+  kable_styling(latex_options = c("repeat_header"),full_width = F) %>%
+  group_rows("Fixed", 1,4) %>%
+  #group_rows("Intercept", 1,2) %>%
+  group_rows("Random", 5,10) %>%
+  group_rows("Model", 11,14)
+```
+
+# Question 6
+Contrain your slope to be fixed, not random. How does this change your model?
+
+```{r, results = 'asis'}
+fixed.slope <- '
+  S~0*S
+'
+fs.growth.mod <- paste(resid.growth.mod, fixed.slope, sep = "\n\n")
+
+mi_nested <- mi_nested %>% 
+  mutate(sem.growth.fs = map(data, ~growth_fun(., fs.growth.mod)),
+         table.fs = map(sem.growth, ~table_fun(., c("I", "S"))))
+
+mi_nested %>%
+  unnest(table) %>%
+  mutate(est = mapvalues(est, c("est", "CI"), c("b", "CI")),
+         type = factor(type, levels = c("fixed", "random", "fitmeas"))) %>%
+  #unite(Trait, Trait, est, sep = ".") %>%
+  spread(key = Trait, value = value) %>%
+  arrange(type) %>%
+  kable(., "latex", booktabs = T, escape = F) %>%
+  kable_styling(latex_options = c("repeat_header"),full_width = F) %>%
+  group_rows("Fixed", 1,4) %>%
+  #group_rows("Intercept", 1,2) %>%
+  group_rows("Random", 5,10) %>%
+  group_rows("Model", 11,14)
+```
+
+# Question 7
+Change the time metric in your SEM growth model. How does that change your estimates? Does it change your fit statistics?
+```{r, results = 'asis'}
+def.latent.new <- '
+  I =~ 1*T1 + 1*T2 + 1*T3
+  S =~ 0*T1 + 4*T2 + 8*T3
+'
+
+nt.growth.mod <- paste(base.growth.mod, def.latent.new, resid.var, sep = "\n\n")
+
+mi_nested <- mi_nested %>% 
+  mutate(sem.growth.nt = map(data, ~growth_fun(., nt.growth.mod)),
+         table.nt = map(sem.growth, ~table_fun(., c("I", "S"))))
+
+mi_nested %>%
+  unnest(table) %>%
+  mutate(est = mapvalues(est, c("est", "CI"), c("b", "CI")),
+         type = factor(type, levels = c("fixed", "random", "fitmeas"))) %>%
+  #unite(Trait, Trait, est, sep = ".") %>%
+  spread(key = Trait, value = value) %>%
+  arrange(type) %>%
+  kable(., "latex", booktabs = T, escape = F) %>%
+  kable_styling(latex_options = c("repeat_header"),full_width = F) %>%
+  group_rows("Fixed", 1,4) %>%
+  #group_rows("Intercept", 1,2) %>%
+  group_rows("Random", 5,10) %>%
+  group_rows("Model", 11,14)
+```
+
+# Question 8
+Try a different type of estimation (see lavaan tutorial for details). How does that change your model?
+```{r}
+growth_fun_dwls <- function(df, model){
+  growth(model, data = df, missing = "FIML", estimator = "DWLS")
+}
+
+mi_nested <- mi_nested %>% 
+  mutate(sem.growth.resid.dwls = map(data, ~growth_fun(., resid.growth.mod)),
+         table.dwls = map(sem.growth, ~table_fun(., c("I", "S"))))
+```
+
+# Question 9
+Provide semplots for each of the models
+
+# Question 10
+Test measurement invariance across time for your construct. Can you run growth models? If there is evidence of non-invariance, what seems to be the problem?
+
+# Question 11
+Fit a second order growth model. Compare and contrast the estimates with the normal latent growth model.  
+```{r}
+
+```
+
+
+# Question 12
+Fit a series of multiple group models. Constrain some parameters and compare the fit.
+
+```{r}
+mgm_fun <- function(df, model){
+  growth(model, data = df, missing = "FIML", group = "le.group")
+}
+
+bfi_wide %>%
+  full_join(le_dat %>% select(Event, PROC_SID, le.group)) %>%
+  group_by(Trait, Event) %>%
+  nest() %>%
+  mutate(mgm = map(data, ~mgm_fun(., resid.growth.mod)))
+```
+
